@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import DashboardActions from "./dashboard-actions";
 
 export default async function Dashboard() {
   const supabase = createClient();
@@ -9,10 +10,15 @@ export default async function Dashboard() {
     .select("id, title, artist_split, artists(name)")
     .order("created_at", { ascending: false });
 
+  const { data: artists } = await supabase
+    .from("artists")
+    .select("id, name")
+    .order("name", { ascending: true });
+
   return (
     <main className="min-h-screen bg-canvas px-6 py-10">
       <div className="max-w-3xl mx-auto">
-        <header className="flex items-center justify-between mb-8">
+        <header className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-semibold text-ink tracking-tight">Overzicht</h1>
             <p className="text-muted text-sm mt-0.5">Alle releases en hun verdeling</p>
@@ -22,11 +28,20 @@ export default async function Dashboard() {
           </span>
         </header>
 
+        <div className="mb-6">
+          <DashboardActions artists={artists ?? []} />
+        </div>
+
+        {(!artists || artists.length === 0) && (
+          <p className="text-muted text-xs mb-4">
+            Begin met "+ Nieuwe artiest" — daarna kun je releases aan die artiest koppelen.
+          </p>
+        )}
+
         <div className="bg-surface rounded-xl2 shadow-card divide-y divide-line overflow-hidden">
           {(!releases || releases.length === 0) && (
             <p className="text-muted text-sm p-8 text-center">
-              Nog geen releases. Voeg er een toe in Supabase of bouw hier een "nieuwe release"
-              formulier bij.
+              Nog geen releases. Voeg er een toe met de knop hierboven.
             </p>
           )}
 
