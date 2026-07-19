@@ -15,7 +15,7 @@ export default function DashboardActions({ artists }: { artists: Artist[] }) {
       <div className="flex gap-2">
         <button
           onClick={() => setShowArtist(true)}
-          className="text-sm font-medium bg-surface border border-line text-ink px-4 py-2 rounded-lg hover:bg-canvas transition"
+          className="text-[13px] font-medium bg-surface border border-line text-ink px-3.5 py-2 rounded-lg hover:bg-canvas active:scale-[0.97] transition"
         >
           + Nieuwe artiest
         </button>
@@ -23,7 +23,7 @@ export default function DashboardActions({ artists }: { artists: Artist[] }) {
           onClick={() => setShowRelease(true)}
           disabled={artists.length === 0}
           title={artists.length === 0 ? "Voeg eerst een artiest toe" : ""}
-          className="text-sm font-medium bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="text-[13px] font-medium bg-accent text-white px-3.5 py-2 rounded-lg shadow-sm hover:bg-accent/90 hover:shadow active:scale-[0.97] transition disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
         >
           + Nieuwe release
         </button>
@@ -48,7 +48,7 @@ function Modal({
 }) {
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-5 z-50"
+      className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-5 z-50 animate-[fadeIn_0.15s_ease-out]"
       onClick={onClose}
     >
       <div
@@ -56,10 +56,10 @@ function Modal({
         className="bg-surface rounded-xl2 shadow-card p-6 w-full max-w-sm"
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-ink">{title}</h2>
+          <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
           <button
             onClick={onClose}
-            className="text-muted hover:text-ink text-sm"
+            className="text-muted hover:text-ink text-sm w-6 h-6 rounded-full hover:bg-canvas flex items-center justify-center transition"
             aria-label="Sluiten"
           >
             ✕
@@ -83,10 +83,7 @@ function NewArtistModal({ onClose }: { onClose: () => void }) {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.from("artists").insert({
-      name,
-      // user_id blijft leeg tot de artiest een eigen account heeft in Supabase Auth
-    });
+    const { error } = await supabase.from("artists").insert({ name });
 
     setLoading(false);
     if (error) {
@@ -101,24 +98,24 @@ function NewArtistModal({ onClose }: { onClose: () => void }) {
     <Modal title="Nieuwe artiest" onClose={onClose}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div>
-          <label className="text-xs font-medium text-muted mb-1 block">Naam</label>
+          <label className="text-[11.5px] font-medium text-muted mb-1 block">Naam</label>
           <input
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
+            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
             placeholder="Artiestnaam"
           />
         </div>
-        <p className="text-xs text-muted">
+        <p className="text-[11.5px] text-muted leading-relaxed">
           Nog geen inlog nodig? Laat dit gewoon zo — je kunt de artiest later koppelen aan een
           account in Supabase (Authentication → Users), zodat die kan inloggen.
         </p>
-        {error && <p className="text-danger text-xs">{error}</p>}
+        {error && <p className="text-danger text-[12px]">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 bg-accent text-white text-sm font-medium rounded-lg py-2.5 hover:bg-accent/90 transition disabled:opacity-50"
+          className="mt-1 bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 active:scale-[0.98] transition disabled:opacity-50"
         >
           {loading ? "Bezig…" : "Artiest toevoegen"}
         </button>
@@ -166,22 +163,22 @@ function NewReleaseModal({
     <Modal title="Nieuwe release" onClose={onClose}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div>
-          <label className="text-xs font-medium text-muted mb-1 block">Titel</label>
+          <label className="text-[11.5px] font-medium text-muted mb-1 block">Titel</label>
           <input
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
+            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
             placeholder="Titel van de release"
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-muted mb-1 block">Artiest</label>
+          <label className="text-[11.5px] font-medium text-muted mb-1 block">Artiest</label>
           <select
             required
             value={artistId}
             onChange={(e) => setArtistId(e.target.value)}
-            className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
+            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           >
             {artists.map((a) => (
               <option key={a.id} value={a.id}>
@@ -191,7 +188,7 @@ function NewReleaseModal({
           </select>
         </div>
         <div>
-          <label className="text-xs font-medium text-muted mb-1 block">
+          <label className="text-[11.5px] font-medium text-muted mb-1 block">
             Verdeelsleutel: artiest {split}% / label {100 - split}%
           </label>
           <input
@@ -203,11 +200,11 @@ function NewReleaseModal({
             className="w-full accent-accent"
           />
         </div>
-        {error && <p className="text-danger text-xs">{error}</p>}
+        {error && <p className="text-danger text-[12px]">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 bg-accent text-white text-sm font-medium rounded-lg py-2.5 hover:bg-accent/90 transition disabled:opacity-50"
+          className="mt-1 bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 active:scale-[0.98] transition disabled:opacity-50"
         >
           {loading ? "Bezig…" : "Release toevoegen"}
         </button>

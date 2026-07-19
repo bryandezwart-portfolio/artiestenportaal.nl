@@ -16,49 +16,46 @@ export default async function Dashboard() {
     .order("name", { ascending: true });
 
   return (
-    <main className="min-h-screen bg-canvas px-6 py-10">
+    <main className="px-6 py-10">
       <div className="max-w-3xl mx-auto">
-        <header className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <header className="flex items-end justify-between mb-7 flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-ink tracking-tight">Overzicht</h1>
-            <p className="text-muted text-sm mt-0.5">Alle releases en hun verdeling</p>
+            <h1 className="text-[28px] font-semibold text-ink tracking-tight">Overzicht</h1>
+            <p className="text-muted text-[13px] mt-0.5">Alle releases en hun verdeling</p>
           </div>
-          <span className="text-xs font-medium bg-accentSoft text-accent px-3 py-1.5 rounded-full">
-            Label-weergave
-          </span>
+          <DashboardActions artists={artists ?? []} />
         </header>
 
-        <div className="mb-6">
-          <DashboardActions artists={artists ?? []} />
-        </div>
-
         {(!artists || artists.length === 0) && (
-          <p className="text-muted text-xs mb-4">
+          <p className="text-muted text-[12.5px] mb-4">
             Begin met "+ Nieuwe artiest" — daarna kun je releases aan die artiest koppelen.
           </p>
         )}
 
         <div className="bg-surface rounded-xl2 shadow-card divide-y divide-line overflow-hidden">
           {(!releases || releases.length === 0) && (
-            <p className="text-muted text-sm p-8 text-center">
-              Nog geen releases. Voeg er een toe met de knop hierboven.
-            </p>
+            <div className="p-10 text-center">
+              <div className="w-10 h-10 rounded-full border-2 border-dashed border-line mx-auto mb-3" />
+              <p className="text-muted text-[13px]">
+                Nog geen releases. Voeg er een toe met de knop hierboven.
+              </p>
+            </div>
           )}
 
           {releases?.map((r: any) => (
             <Link
               key={r.id}
               href={`/dashboard/${r.id}`}
-              className="flex items-center justify-between px-6 py-4 hover:bg-canvas/60 transition"
+              className="flex items-center justify-between px-6 py-4 hover:bg-canvas/70 active:bg-canvas transition-colors duration-100"
             >
               <div>
-                <div className="text-sm font-medium text-ink">{r.title}</div>
-                <div className="text-xs text-muted mt-0.5">{r.artists?.name}</div>
+                <div className="text-[14px] font-medium text-ink">{r.title}</div>
+                <div className="text-[12.5px] text-muted mt-0.5">{r.artists?.name}</div>
               </div>
-              <div className="flex items-center gap-2 text-xs font-mono">
-                <span className="text-artist">{r.artist_split}%</span>
+              <div className="flex items-center gap-2 text-[12px] font-mono">
+                <span className="text-artist font-medium">{r.artist_split}%</span>
                 <span className="text-line">/</span>
-                <span className="text-label">{100 - r.artist_split}%</span>
+                <span className="text-label font-medium">{100 - r.artist_split}%</span>
               </div>
             </Link>
           ))}
