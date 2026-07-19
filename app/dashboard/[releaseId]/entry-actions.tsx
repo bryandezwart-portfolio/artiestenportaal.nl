@@ -16,7 +16,7 @@ export function AddEntryButton({ releaseId }: { releaseId: string }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-[13px] font-medium bg-surface border border-line text-ink px-3.5 py-1.5 rounded-lg hover:bg-canvas active:scale-[0.97] transition"
+        className="text-[13px] font-medium bg-surface border border-line text-ink px-3.5 py-1.5 rounded-lg hover:bg-surfaceHover active:scale-[0.97] transition"
       >
         + Boeking toevoegen
       </button>
@@ -65,18 +65,18 @@ function EntryModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-5 z-50"
+      className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-5 z-50"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-surface rounded-xl2 shadow-card p-6 w-full max-w-sm"
+        className="bg-surface border border-line rounded-xl2 shadow-card p-6 w-full max-w-sm"
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[15px] font-semibold text-ink">Boeking toevoegen</h2>
           <button
             onClick={onClose}
-            className="text-muted hover:text-ink text-sm w-6 h-6 rounded-full hover:bg-canvas flex items-center justify-center transition"
+            className="text-muted hover:text-ink text-sm w-6 h-6 rounded-full hover:bg-surfaceHover flex items-center justify-center transition"
             aria-label="Sluiten"
           >
             ✕
@@ -86,7 +86,7 @@ function EntryModal({
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           >
             {ENTRY_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -98,7 +98,7 @@ function EntryModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Omschrijving (bv. Spotify streams juni)"
-            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           />
           <input
             type="number"
@@ -107,13 +107,13 @@ function EntryModal({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Bedrag in €"
-            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           />
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           />
           {error && <p className="text-danger text-[12px]">{error}</p>}
           <button

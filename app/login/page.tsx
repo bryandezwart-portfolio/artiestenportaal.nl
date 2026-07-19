@@ -31,7 +31,9 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
           <div className="w-12 h-12 rounded-2xl bg-ink mx-auto mb-4 shadow-sm" />
-          <h1 className="text-[24px] font-semibold text-ink tracking-tight">Ledger</h1>
+          <h1 className="text-[24px] font-semibold text-ink tracking-tight">
+            Artiesten Portaal
+          </h1>
           <p className="text-muted text-[13px] mt-1">Log in om je overzicht te zien</p>
         </div>
 
@@ -46,7 +48,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-line px-3.5 py-2.5 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+              className="w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
               placeholder="jij@label.nl"
             />
           </div>
@@ -59,7 +61,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-line px-3.5 py-2.5 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+              className="w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
               placeholder="••••••••"
             />
           </div>

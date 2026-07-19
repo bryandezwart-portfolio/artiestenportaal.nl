@@ -9,9 +9,9 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const TYPE_STYLE: Record<string, string> = {
-  income: "bg-green-50 text-green-700",
-  cost: "bg-red-50 text-red-700",
-  advance: "bg-amber-50 text-amber-700",
+  income: "bg-green-500/15 text-green-400",
+  cost: "bg-red-500/15 text-red-400",
+  advance: "bg-amber-500/15 text-amber-400",
 };
 
 const fmt = (n: number) =>
@@ -41,7 +41,7 @@ export default function ReleaseCard({ release }: { release: any }) {
     <div className="bg-surface rounded-xl2 shadow-card overflow-hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full text-left p-6 hover:bg-canvas/40 transition-colors duration-100"
+        className="w-full text-left p-6 hover:bg-surfaceHover transition-colors duration-100"
       >
         <div className="flex items-center justify-between">
           <span className="text-[14px] font-medium text-ink">{release.title}</span>

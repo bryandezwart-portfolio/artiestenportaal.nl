@@ -10,9 +10,9 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const TYPE_STYLE: Record<string, string> = {
-  income: "bg-green-50 text-green-700",
-  cost: "bg-red-50 text-red-700",
-  advance: "bg-amber-50 text-amber-700",
+  income: "bg-green-500/15 text-green-400",
+  cost: "bg-red-500/15 text-red-400",
+  advance: "bg-amber-500/15 text-amber-400",
 };
 
 export default async function ReleaseDetail({

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import DashboardActions from "./dashboard-actions";
+import StatsPanel from "./stats-panel";
 
 export default async function Dashboard() {
   const supabase = createClient();
@@ -15,6 +16,10 @@ export default async function Dashboard() {
     .select("id, name")
     .order("name", { ascending: true });
 
+  const { data: entries } = await supabase
+    .from("entries")
+    .select("type, amount, entry_date, release_id, releases(title)");
+
   return (
     <main className="px-6 py-10">
       <div className="max-w-3xl mx-auto">
@@ -26,12 +31,15 @@ export default async function Dashboard() {
           <DashboardActions artists={artists ?? []} />
         </header>
 
+        <StatsPanel entries={(entries as any) ?? []} />
+
         {(!artists || artists.length === 0) && (
           <p className="text-muted text-[12.5px] mb-4">
             Begin met "+ Nieuwe artiest" — daarna kun je releases aan die artiest koppelen.
           </p>
         )}
 
+        <h2 className="text-[13.5px] font-medium text-ink mb-3">Releases</h2>
         <div className="bg-surface rounded-xl2 shadow-card divide-y divide-line overflow-hidden">
           {(!releases || releases.length === 0) && (
             <div className="p-10 text-center">
@@ -46,7 +54,7 @@ export default async function Dashboard() {
             <Link
               key={r.id}
               href={`/dashboard/${r.id}`}
-              className="flex items-center justify-between px-6 py-4 hover:bg-canvas/70 active:bg-canvas transition-colors duration-100"
+              className="flex items-center justify-between px-6 py-4 hover:bg-surfaceHover active:bg-surfaceHover transition-colors duration-100"
             >
               <div>
                 <div className="text-[14px] font-medium text-ink">{r.title}</div>

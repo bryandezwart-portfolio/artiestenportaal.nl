@@ -15,7 +15,7 @@ export default function DashboardActions({ artists }: { artists: Artist[] }) {
       <div className="flex gap-2">
         <button
           onClick={() => setShowArtist(true)}
-          className="text-[13px] font-medium bg-surface border border-line text-ink px-3.5 py-2 rounded-lg hover:bg-canvas active:scale-[0.97] transition"
+          className="text-[13px] font-medium bg-surface border border-line text-ink px-3.5 py-2 rounded-lg hover:bg-surfaceHover active:scale-[0.97] transition"
         >
           + Nieuwe artiest
         </button>
@@ -48,18 +48,18 @@ function Modal({
 }) {
   return (
     <div
-      className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-5 z-50 animate-[fadeIn_0.15s_ease-out]"
+      className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-5 z-50 animate-[fadeIn_0.15s_ease-out]"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-surface rounded-xl2 shadow-card p-6 w-full max-w-sm"
+        className="bg-surface border border-line rounded-xl2 shadow-card p-6 w-full max-w-sm"
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
           <button
             onClick={onClose}
-            className="text-muted hover:text-ink text-sm w-6 h-6 rounded-full hover:bg-canvas flex items-center justify-center transition"
+            className="text-muted hover:text-ink text-sm w-6 h-6 rounded-full hover:bg-surfaceHover flex items-center justify-center transition"
             aria-label="Sluiten"
           >
             ✕
@@ -103,7 +103,7 @@ function NewArtistModal({ onClose }: { onClose: () => void }) {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
             placeholder="Artiestnaam"
           />
         </div>
@@ -168,7 +168,7 @@ function NewReleaseModal({
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
             placeholder="Titel van de release"
           />
         </div>
@@ -178,7 +178,7 @@ function NewReleaseModal({
             required
             value={artistId}
             onChange={(e) => setArtistId(e.target.value)}
-            className="w-full rounded-lg border border-line px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           >
             {artists.map((a) => (
               <option key={a.id} value={a.id}>

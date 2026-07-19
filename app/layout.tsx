@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Ledger",
+  title: "Artiesten Portaal",
   description: "Royalty-overzicht voor label en artiesten",
 };
 
