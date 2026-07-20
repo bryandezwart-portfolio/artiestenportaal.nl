@@ -73,25 +73,51 @@ function Modal({
 
 function NewArtistModal({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.from("artists").insert({ name });
+    const res = await fetch("/api/create-artist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email: email || null }),
+    });
+    const data = await res.json();
 
     setLoading(false);
-    if (error) {
-      setError("Opslaan mislukt: " + error.message);
+    if (!res.ok) {
+      setError(data.error || "Opslaan mislukt.");
       return;
     }
-    onClose();
-    router.refresh();
+
+    if (email) {
+      setSuccess(true);
+      setTimeout(() => {
+        onClose();
+        router.refresh();
+      }, 1800);
+    } else {
+      onClose();
+      router.refresh();
+    }
+  }
+
+  if (success) {
+    return (
+      <Modal title="Nieuwe artiest" onClose={onClose}>
+        <p className="text-[13.5px] text-ink">
+          <span className="text-accent">✓</span> Uitnodiging verstuurd naar <strong>{email}</strong>.
+          Zodra de artiest de link opent, kan die direct inloggen en zijn eigen overzicht zien.
+        </p>
+      </Modal>
+    );
   }
 
   return (
@@ -107,9 +133,21 @@ function NewArtistModal({ onClose }: { onClose: () => void }) {
             placeholder="Artiestnaam"
           />
         </div>
+        <div>
+          <label className="text-[11.5px] font-medium text-muted mb-1 block">
+            E-mailadres <span className="text-muted font-normal">(optioneel)</span>
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            placeholder="artiest@voorbeeld.nl"
+          />
+        </div>
         <p className="text-[11.5px] text-muted leading-relaxed">
-          Nog geen inlog nodig? Laat dit gewoon zo — je kunt de artiest later koppelen aan een
-          account in Supabase (Authentication → Users), zodat die kan inloggen.
+          Vul een e-mailadres in om de artiest direct een uitnodiging te sturen — die kan dan
+          zelf inloggen en zijn eigen inkomsten zien. Laat het leeg als je dat later wilt doen.
         </p>
         {error && <p className="text-danger text-[12px]">{error}</p>}
         <button
@@ -117,7 +155,7 @@ function NewArtistModal({ onClose }: { onClose: () => void }) {
           disabled={loading}
           className="mt-1 bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 active:scale-[0.98] transition disabled:opacity-50"
         >
-          {loading ? "Bezig…" : "Artiest toevoegen"}
+          {loading ? "Bezig…" : email ? "Artiest toevoegen en uitnodigen" : "Artiest toevoegen"}
         </button>
       </form>
     </Modal>
