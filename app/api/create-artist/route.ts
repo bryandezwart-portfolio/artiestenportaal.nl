@@ -40,16 +40,12 @@ export async function POST(request: Request) {
   if (email) {
     const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
       email,
-      { redirectTo: `${SITE_URL}/artist` }
+      { redirectTo: `${SITE_URL}/auth/callback` }
     );
 
     if (invited?.user) {
       userId = invited.user.id;
     } else if (inviteError) {
-      // Account bestaat al (bv. eerder al eens uitgenodigd) — zoek het op en
-      // stuur alsnog een echte inloglink via de normale mailflow (niet de
-      // admin generate_link functie, die genereert alleen een link zonder
-      // 'm te versturen).
       const { data: list } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
       const existing = list?.users.find(
         (u) => u.email?.toLowerCase() === email.toLowerCase()
@@ -63,7 +59,7 @@ export async function POST(request: Request) {
         );
         await publicClient.auth.signInWithOtp({
           email,
-          options: { emailRedirectTo: `${SITE_URL}/` },
+          options: { emailRedirectTo: `${SITE_URL}/auth/callback` },
         });
       } else {
         return NextResponse.json({ error: inviteError.message }, { status: 400 });
@@ -71,13 +67,20 @@ export async function POST(request: Request) {
     }
   }
 
-  const { error: insertError } = await adminClient.from("artists").insert({
-    name,
-    user_id: userId,
-  });
+  const { data: newArtist, error: insertError } = await adminClient
+    .from("artists")
+    .insert({ name })
+    .select("id")
+    .single();
 
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 400 });
+  }
+
+  if (userId) {
+    await adminClient
+      .from("artist_users")
+      .insert({ artist_id: newArtist.id, user_id: userId });
   }
 
   return NextResponse.json({ success: true });

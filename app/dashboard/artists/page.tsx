@@ -6,7 +6,7 @@ export default async function ArtistsPage() {
 
   const { data: artists } = await supabase
     .from("artists")
-    .select("id, name, contract_status, contract_notes, user_id")
+    .select("id, name, contract_status, contract_notes")
     .order("name", { ascending: true });
 
   return (
