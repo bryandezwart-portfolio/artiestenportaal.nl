@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -46,18 +47,23 @@ export async function POST(request: Request) {
       userId = invited.user.id;
     } else if (inviteError) {
       // Account bestaat al (bv. eerder al eens uitgenodigd) — zoek het op en
-      // stuur alsnog een verse inloglink, zodat de artiest altijd een werkende
-      // e-mail krijgt, ook bij een herhaalde uitnodiging.
+      // stuur alsnog een echte inloglink via de normale mailflow (niet de
+      // admin generate_link functie, die genereert alleen een link zonder
+      // 'm te versturen).
       const { data: list } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
       const existing = list?.users.find(
         (u) => u.email?.toLowerCase() === email.toLowerCase()
       );
       if (existing) {
         userId = existing.id;
-        await adminClient.auth.admin.generateLink({
-          type: "magiclink",
+
+        const publicClient = createSupabaseClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        await publicClient.auth.signInWithOtp({
           email,
-          options: { redirectTo: `${SITE_URL}/` },
+          options: { emailRedirectTo: `${SITE_URL}/` },
         });
       } else {
         return NextResponse.json({ error: inviteError.message }, { status: 400 });
