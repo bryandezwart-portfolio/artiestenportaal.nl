@@ -44,7 +44,12 @@ export default function ReleaseCard({ release }: { release: any }) {
         className="w-full text-left p-6 hover:bg-surfaceHover transition-colors duration-100"
       >
         <div className="flex items-center justify-between">
-          <span className="text-[14px] font-medium text-ink">{release.title}</span>
+          <div>
+            <span className="text-[14px] font-medium text-ink">{release.title}</span>
+            {release.distributor && (
+              <span className="text-[11px] text-muted ml-2">via {release.distributor}</span>
+            )}
+          </div>
           <span className="text-[11.5px] font-mono text-artist">
             {release.artist_split}% jouw deel
           </span>
@@ -52,7 +57,7 @@ export default function ReleaseCard({ release }: { release: any }) {
         <div className="flex items-end justify-between mt-3">
           <div>
             <div className="text-[30px] font-semibold text-ink tracking-tight">{fmt(yours)}</div>
-            <div className="text-[11.5px] text-muted mt-0.5">te ontvangen</div>
+            <div className="text-[11.5px] text-muted mt-0.5">te ontvangen (geselecteerde periode)</div>
           </div>
           <span
             className={`text-muted text-[12px] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -65,7 +70,9 @@ export default function ReleaseCard({ release }: { release: any }) {
       {open && (
         <div className="border-t border-line divide-y divide-line">
           {sortedEntries.length === 0 && (
-            <p className="text-muted text-[12.5px] p-5 text-center">Nog geen boekingen.</p>
+            <p className="text-muted text-[12.5px] p-5 text-center">
+              Geen boekingen in deze periode.
+            </p>
           )}
           {sortedEntries.map((e: any) => (
             <div key={e.id} className="flex items-center justify-between px-6 py-3 text-[13px]">
@@ -75,6 +82,11 @@ export default function ReleaseCard({ release }: { release: any }) {
                 >
                   {TYPE_LABEL[e.type]}
                 </span>
+                {e.platform && (
+                  <span className="text-[10px] font-medium tracking-wide px-2 py-0.5 rounded-full mr-2 bg-line/60 text-muted">
+                    {e.platform}
+                  </span>
+                )}
                 <span className="text-ink">{e.description || "—"}</span>
                 {e.entry_date && (
                   <span className="text-muted ml-2 text-[11px]">{e.entry_date}</span>

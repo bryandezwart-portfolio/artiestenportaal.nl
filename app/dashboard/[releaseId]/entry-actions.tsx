@@ -10,6 +10,15 @@ const ENTRY_TYPES = [
   { value: "advance", label: "Voorschot (artiest)" },
 ];
 
+const PLATFORMS = [
+  "Spotify",
+  "Apple Music",
+  "YouTube",
+  "TikTok",
+  "Amazon Music",
+  "Overig / distributeur verzamelfactuur",
+];
+
 export function AddEntryButton({ releaseId }: { releaseId: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -33,6 +42,7 @@ function EntryModal({
   onClose: () => void;
 }) {
   const [type, setType] = useState("income");
+  const [platform, setPlatform] = useState(PLATFORMS[0]);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -49,6 +59,7 @@ function EntryModal({
     const { error } = await supabase.from("entries").insert({
       release_id: releaseId,
       type,
+      platform: type === "income" ? platform : null,
       description,
       amount: Number(amount),
       entry_date: date,
@@ -94,10 +105,23 @@ function EntryModal({
               </option>
             ))}
           </select>
+          {type === "income" && (
+            <select
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
+              className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            >
+              {PLATFORMS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          )}
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Omschrijving (bv. Spotify streams juni)"
+            placeholder="Omschrijving (bv. streams juni)"
             className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           />
           <input

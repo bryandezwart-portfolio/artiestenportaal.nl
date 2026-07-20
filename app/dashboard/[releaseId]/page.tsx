@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import SplitEditor from "./split-editor";
+import DistributorEditor from "./distributor-editor";
 import { AddEntryButton, DeleteEntryButton } from "./entry-actions";
 
 const TYPE_LABEL: Record<string, string> = {
@@ -24,7 +25,7 @@ export default async function ReleaseDetail({
 
   const { data: release } = await supabase
     .from("releases")
-    .select("id, title, artist_split, artists(name)")
+    .select("id, title, artist_split, distributor, artists(name)")
     .eq("id", params.releaseId)
     .single();
 
@@ -36,14 +37,14 @@ export default async function ReleaseDetail({
 
   if (!release) {
     return (
-      <main className="px-6 py-16 text-center text-muted text-[13.5px]">
+      <main className="animate-blur-in px-6 py-16 text-center text-muted text-[13.5px]">
         Release niet gevonden.
       </main>
     );
   }
 
   return (
-    <main className="px-6 py-10">
+    <main className="animate-blur-in px-6 py-10">
       <div className="max-w-3xl mx-auto">
         <Link
           href="/dashboard"
@@ -53,7 +54,10 @@ export default async function ReleaseDetail({
         </Link>
 
         <h1 className="text-[26px] font-semibold text-ink tracking-tight">{release.title}</h1>
-        <p className="text-muted text-[13px] mt-0.5 mb-7">{(release as any).artists?.name}</p>
+        <p className="text-muted text-[13px] mt-0.5">{(release as any).artists?.name}</p>
+        <div className="mt-2 mb-7">
+          <DistributorEditor releaseId={release.id} initialValue={release.distributor} />
+        </div>
 
         <SplitEditor releaseId={release.id} initialSplit={release.artist_split} />
 
@@ -74,6 +78,11 @@ export default async function ReleaseDetail({
                 >
                   {TYPE_LABEL[e.type]}
                 </span>
+                {e.platform && (
+                  <span className="text-[10px] font-medium tracking-wide px-2 py-0.5 rounded-full mr-2 bg-line/60 text-muted">
+                    {e.platform}
+                  </span>
+                )}
                 <span className="text-ink">{e.description || "—"}</span>
                 {e.entry_date && (
                   <span className="text-muted ml-2 text-[11.5px]">{e.entry_date}</span>

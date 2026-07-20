@@ -171,6 +171,7 @@ function NewReleaseModal({
 }) {
   const [title, setTitle] = useState("");
   const [artistId, setArtistId] = useState(artists[0]?.id ?? "");
+  const [distributor, setDistributor] = useState("");
   const [split, setSplit] = useState(50);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -186,6 +187,7 @@ function NewReleaseModal({
       title,
       artist_id: artistId,
       artist_split: split,
+      distributor: distributor || null,
     });
 
     setLoading(false);
@@ -224,6 +226,17 @@ function NewReleaseModal({
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label className="text-[11.5px] font-medium text-muted mb-1 block">
+            Distributeur <span className="text-muted font-normal">(optioneel)</span>
+          </label>
+          <input
+            value={distributor}
+            onChange={(e) => setDistributor(e.target.value)}
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            placeholder="Bijv. Label Distro BV"
+          />
         </div>
         <div>
           <label className="text-[11.5px] font-medium text-muted mb-1 block">

@@ -16,7 +16,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-canvas">
-      <Nav email={user.email ?? ""} label="Label-weergave" />
+      <Nav email={user.email ?? ""} label="Label-weergave" isAdmin />
       {children}
     </div>
   );
