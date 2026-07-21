@@ -43,7 +43,9 @@ const config: Config = {
           "100%": { opacity: "1" },
         },
         logoIn: {
-          "0%": { opacity: "0", filter: "blur(18px)", transform: "scale(0.94)" },
+          "0%": { opacity: "0", filter: "blur(24px)", transform: "scale(0.88)" },
+          "45%": { opacity: "1", filter: "blur(6px)", transform: "scale(1.035)" },
+          "70%": { filter: "blur(1px)", transform: "scale(0.99)" },
           "100%": { opacity: "1", filter: "blur(0px)", transform: "scale(1)" },
         },
         popIn: {
@@ -54,7 +56,7 @@ const config: Config = {
       animation: {
         "blur-in": "blurIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both",
         "fade-in": "fadeIn 0.5s ease-out both",
-        "logo-in": "logoIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "logo-in": "logoIn 2.2s cubic-bezier(0.22, 1, 0.36, 1) both",
         "pop-in": "popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both",
       },
     },

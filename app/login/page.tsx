@@ -79,14 +79,14 @@ export default function LoginPage() {
       />
       <p
         className="animate-fade-in text-muted text-[13px] mb-8"
-        style={{ animationDelay: "0.35s", animationFillMode: "both" }}
+        style={{ animationDelay: "1.1s", animationFillMode: "both" }}
       >
         Log in om je overzicht te zien
       </p>
 
       <div
         className="animate-blur-in w-full max-w-sm"
-        style={{ animationDelay: "0.15s", animationFillMode: "both" }}
+        style={{ animationDelay: "1.3s", animationFillMode: "both" }}
       >
         <div className="bg-surface rounded-xl2 shadow-card p-8">
           {mode !== "forgot" && (
