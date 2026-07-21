@@ -1,15 +1,29 @@
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+
+type AdminCheckOk = {
+  ok: true;
+  user: User;
+  supabase: SupabaseClient;
+};
+
+type AdminCheckFail = {
+  ok: false;
+  error: string;
+  status: number;
+};
+
+export type AdminCheck = AdminCheckOk | AdminCheckFail;
 
 // Haalt de ingelogde gebruiker op en checkt of die label-admin is.
-// Geeft { error: NextResponse } terug als het niet mag, anders { user }.
-export async function requireAdmin() {
+export async function requireAdmin(): Promise<AdminCheck> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: { message: "Niet ingelogd.", status: 401 } } as const;
+    return { ok: false, error: "Niet ingelogd.", status: 401 };
   }
 
   const { data: admin } = await supabase
@@ -19,8 +33,8 @@ export async function requireAdmin() {
     .maybeSingle();
 
   if (!admin) {
-    return { error: { message: "Geen toegang.", status: 403 } } as const;
+    return { ok: false, error: "Geen toegang.", status: 403 };
   }
 
-  return { user, supabase } as const;
+  return { ok: true, user, supabase };
 }

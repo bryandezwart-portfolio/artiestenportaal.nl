@@ -3,8 +3,8 @@ import { requireAdmin } from "@/lib/supabase/require-admin";
 
 export async function POST(request: Request) {
   const check = await requireAdmin();
-  if ("error" in check) {
-    return NextResponse.json({ error: check.error.message }, { status: check.error.status });
+  if (!check.ok) {
+    return NextResponse.json({ error: check.error }, { status: check.status });
   }
   const { supabase, user } = check;
 
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   const check = await requireAdmin();
-  if ("error" in check) {
-    return NextResponse.json({ error: check.error.message }, { status: check.error.status });
+  if (!check.ok) {
+    return NextResponse.json({ error: check.error }, { status: check.status });
   }
   const { supabase } = check;
 
