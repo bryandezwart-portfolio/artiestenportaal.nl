@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-// Vast hoofdadres van de site — voorkomt dat uitnodigingslinks naar een
-// tijdelijke Vercel preview-URL wijzen (die soms een Vercel-inlogscherm toont).
-const SITE_URL = "https://artiestenportaal-nl.vercel.app";
+import { SITE_URL } from "@/lib/site-url";
 
 export async function POST(request: Request) {
   const supabase = createClient();

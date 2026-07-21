@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-
-// Vast hoofdadres van de site — voorkomt dat e-maillinks naar een
-// tijdelijke Vercel preview-URL wijzen.
-const SITE_URL = "https://artiestenportaal-nl.vercel.app";
+import { SITE_URL } from "@/lib/site-url";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
