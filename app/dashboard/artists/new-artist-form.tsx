@@ -10,13 +10,14 @@ export default function NewArtistForm() {
   const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [lastAssignedCode, setLastAssignedCode] = useState("");
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError("");
-
+    setLastAssignedCode("");
     const res = await fetch("/api/create-artist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -24,27 +25,33 @@ export default function NewArtistForm() {
     });
     const data = await res.json();
     setSaving(false);
-
     if (!res.ok) {
       setError(data.error || "Toevoegen mislukt.");
       return;
     }
-
     setName("");
     setArtistCode("");
     setEmail("");
     setOpen(false);
+    setLastAssignedCode(data.artistCode || "");
     router.refresh();
   }
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="w-full bg-surface rounded-xl2 shadow-card p-4 text-[13.5px] font-medium text-accent hover:bg-surfaceHover transition text-center mb-6"
-      >
-        + Nieuwe artiest
-      </button>
+      <div className="mb-6">
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full bg-surface rounded-xl2 shadow-card p-4 text-[13.5px] font-medium text-accent hover:bg-surfaceHover transition text-center"
+        >
+          + Nieuwe artiest
+        </button>
+        {lastAssignedCode && (
+          <p className="text-[12.5px] text-muted text-center mt-2">
+            Artiest toegevoegd met code <span className="font-mono text-ink">{lastAssignedCode}</span>
+          </p>
+        )}
+      </div>
     );
   }
 
@@ -63,7 +70,6 @@ export default function NewArtistForm() {
           Annuleren
         </button>
       </div>
-
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="text-[11.5px] font-medium text-muted mb-1.5 block">Naam</label>
@@ -77,12 +83,12 @@ export default function NewArtistForm() {
         </div>
         <div>
           <label className="text-[11.5px] font-medium text-muted mb-1.5 block">
-            Artiestcode <span className="text-muted font-normal">(optioneel, eigen indeling)</span>
+            Artiestcode <span className="text-muted font-normal">(optioneel — anders automatisch)</span>
           </label>
           <input
             value={artistCode}
             onChange={(e) => setArtistCode(e.target.value)}
-            placeholder="bv. ART-001"
+            placeholder="Automatisch (ART-0001, ART-0002, …)"
             className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] font-mono text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           />
         </div>
@@ -99,9 +105,7 @@ export default function NewArtistForm() {
           />
         </div>
       </div>
-
       {error && <p className="text-danger text-[12.5px]">{error}</p>}
-
       <button
         type="submit"
         disabled={saving}
