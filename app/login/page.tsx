@@ -186,7 +186,7 @@ export default function LoginPage() {
                 </p>
                 <div>
                   <label className="text-[11.5px] font-medium text-muted mb-1.5 block">
-                    Voer de 6-cijferige code in
+                    Voer de code in
                   </label>
                   <input
                     type="text"
@@ -197,13 +197,13 @@ export default function LoginPage() {
                     onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
                     maxLength={8}
                     className="w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[15px] tracking-[0.3em] text-center text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
-                    placeholder="000000"
+                    placeholder="00000000"
                   />
                 </div>
                 {error && <p className="text-danger text-[12.5px]">{error}</p>}
                 <button
                   type="submit"
-                  disabled={loading || otp.length !== 8}
+                  disabled={loading || otp.length < 6}
                   className="mt-1 w-full bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 hover:shadow active:scale-[0.98] transition disabled:opacity-50"
                 >
                   {loading ? "Bezig…" : "Bevestigen"}
@@ -241,4 +241,59 @@ export default function LoginPage() {
                   disabled={loading}
                   className="mt-1 w-full bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 hover:shadow active:scale-[0.98] transition disabled:opacity-50"
                 >
-                  {loading ? "Bezig…" :
+                  {loading ? "Bezig…" : "Stuur inlogcode"}
+                </button>
+              </form>
+            ))}
+
+          {mode === "forgot" &&
+            (sent ? (
+              <p className="text-[13.5px] text-ink text-center py-4">
+                <span className="text-accent">✓</span> Check je inbox — we hebben een link
+                gestuurd naar <strong>{email}</strong> om een nieuw wachtwoord in te stellen.
+              </p>
+            ) : (
+              <form onSubmit={handleForgot} className="flex flex-col gap-4">
+                <p className="text-[12.5px] text-muted -mt-1">
+                  Vul je e-mailadres in, dan sturen we een link om een nieuw wachtwoord in te
+                  stellen.
+                </p>
+                <div>
+                  <label className="text-[11.5px] font-medium text-muted mb-1.5 block">
+                    E-mail
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+                    placeholder="jij@label.nl"
+                  />
+                </div>
+                {error && <p className="text-danger text-[12.5px]">{error}</p>}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-1 w-full bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 hover:shadow active:scale-[0.98] transition disabled:opacity-50"
+                >
+                  {loading ? "Bezig…" : "Stuur resetlink"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchMode("password")}
+                  className="text-[12px] text-muted hover:text-ink transition"
+                >
+                  ← Terug naar inloggen
+                </button>
+              </form>
+            ))}
+        </div>
+
+        <p className="text-center text-[12px] text-muted mt-6">
+          Nieuwe artiest? Vraag het label om een uitnodiging te sturen.
+        </p>
+      </div>
+    </main>
+  );
+}
