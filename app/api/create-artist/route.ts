@@ -11,7 +11,6 @@ export async function POST(request: Request) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
     if (!user) {
       return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
     }
@@ -22,18 +21,42 @@ export async function POST(request: Request) {
       .select("user_id")
       .eq("user_id", user.id)
       .maybeSingle();
-
     if (!admin) {
       return NextResponse.json({ error: "Geen toegang." }, { status: 403 });
     }
 
     const { name, email, artistCode } = await request.json();
-
     if (!name) {
       return NextResponse.json({ error: "Naam is verplicht." }, { status: 400 });
     }
 
     const adminClient = createAdminClient();
+
+    // Genereer automatisch een ART-nummer als er geen code is opgegeven.
+    let resolvedArtistCode: string | null = artistCode || null;
+    if (!resolvedArtistCode) {
+      const { data: existingCodes, error: codesError } = await adminClient
+        .from("artists")
+        .select("artist_code")
+        .like("artist_code", "ART-%");
+      if (codesError) {
+        console.error("create-artist: ophalen bestaande codes faalde:", codesError);
+        return NextResponse.json(
+          { error: "Kon geen artiestcode genereren (ophalen bestaande codes mislukt)." },
+          { status: 500 }
+        );
+      }
+      let highest = 0;
+      for (const row of existingCodes ?? []) {
+        const match = row.artist_code?.match(/^ART-(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > highest) highest = num;
+        }
+      }
+      resolvedArtistCode = `ART-${String(highest + 1).padStart(4, "0")}`;
+    }
+
     let userId: string | null = null;
 
     if (email) {
@@ -41,7 +64,6 @@ export async function POST(request: Request) {
         email,
         { redirectTo: `${SITE_URL}/auth/callback` }
       );
-
       if (invited?.user) {
         userId = invited.user.id;
       } else if (inviteError) {
@@ -52,7 +74,6 @@ export async function POST(request: Request) {
         );
         if (existing) {
           userId = existing.id;
-
           const publicClient = createSupabaseClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -72,8 +93,8 @@ export async function POST(request: Request) {
 
     const { data: newArtist, error: insertError } = await adminClient
       .from("artists")
-      .insert({ name, artist_code: artistCode || null })
-      .select("id")
+      .insert({ name, artist_code: resolvedArtistCode })
+      .select("id, artist_code")
       .single();
 
     if (insertError) {
@@ -90,9 +111,13 @@ export async function POST(request: Request) {
         .insert({ artist_id: newArtist.id, user_id: userId });
     }
 
-    await logActivity(supabase, user.email, "artist_created", `Artiest "${name}" aangemaakt`);
-
-    return NextResponse.json({ success: true });
+    await logActivity(
+      supabase,
+      user.email,
+      "artist_created",
+      `Artiest "${name}" aangemaakt (${newArtist.artist_code})`
+    );
+    return NextResponse.json({ success: true, artistCode: newArtist.artist_code });
   } catch (err) {
     console.error("create-artist: onverwachte fout:", err);
     const message = err instanceof Error ? err.message : "Onverwachte serverfout.";
