@@ -24,6 +24,7 @@ type Artist = {
 
 export default function ArtistSearchList({ artists }: { artists: Artist[] }) {
   const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("alle");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState(STATUS_OPTIONS[0].value);
   const [applying, setApplying] = useState(false);
@@ -32,11 +33,15 @@ export default function ArtistSearchList({ artists }: { artists: Artist[] }) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return artists;
-    return artists.filter((a) =>
-      [a.name, a.artist_code].filter(Boolean).join(" ").toLowerCase().includes(q)
-    );
-  }, [artists, query]);
+    return artists.filter((a) => {
+      const matchesQuery =
+        !q ||
+        [a.name, a.artist_code].filter(Boolean).join(" ").toLowerCase().includes(q);
+      const matchesStatus =
+        statusFilter === "alle" || a.contract_status === statusFilter;
+      return matchesQuery && matchesStatus;
+    });
+  }, [artists, query, statusFilter]);
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -102,6 +107,20 @@ export default function ArtistSearchList({ artists }: { artists: Artist[] }) {
               </button>
             )}
           </div>
+        )}
+        {artists.length > 5 && (
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-lg border border-line bg-surface px-3 py-2.5 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition shadow-card shrink-0"
+          >
+            <option value="alle">Alle statussen</option>
+            {STATUS_OPTIONS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
         )}
         {artists.length > 0 && (
           <button
