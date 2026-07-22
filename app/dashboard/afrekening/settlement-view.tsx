@@ -128,8 +128,12 @@ export default function SettlementView({
         <div className="bg-surface rounded-xl2 shadow-card p-8">
           <div className="flex items-center justify-between mb-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Artiestenportaal.nl" className="h-8 w-auto" />
-            <span className="text-[12px] text-muted">
+            <img
+              src="/logo.png"
+              alt="Artiestenportaal.nl"
+              className="hidden print:block h-8 w-auto"
+            />
+            <span className="text-[12px] text-muted ml-auto">
               {formatDate(from)} — {formatDate(to)}
             </span>
           </div>

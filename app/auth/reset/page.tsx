@@ -1,17 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordInner />
+    </Suspense>
+  );
+}
+
+function ResetPasswordInner() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  const isInvite = searchParams.get("type") === "invite";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,7 +61,18 @@ export default function ResetPasswordPage() {
         alt="Artiestenportaal.nl"
         className="animate-logo-in w-[85vw] max-w-[567px] h-auto mb-2"
       />
-      <p className="text-muted text-[13px] mb-8">Stel je wachtwoord in</p>
+
+      {isInvite ? (
+        <div className="text-center mb-8 max-w-sm">
+          <p className="text-ink text-[15px] font-medium">Beste Artiest!</p>
+          <p className="text-muted text-[13px] mt-1 leading-relaxed">
+            Welkom bij Artiestenportaal.nl. Dit is een uitnodiging — maak nu jouw wachtwoord aan
+            om toegang te krijgen tot je persoonlijke overzicht.
+          </p>
+        </div>
+      ) : (
+        <p className="text-muted text-[13px] mb-8">Stel je nieuwe wachtwoord in</p>
+      )}
 
       <div className="w-full max-w-sm">
         <div className="bg-surface rounded-xl2 shadow-card p-8">
@@ -62,7 +84,7 @@ export default function ResetPasswordPage() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>
                 <label className="text-[11.5px] font-medium text-muted mb-1.5 block">
-                  Nieuw wachtwoord
+                  {isInvite ? "Kies een wachtwoord" : "Nieuw wachtwoord"}
                 </label>
                 <input
                   type="password"
@@ -92,11 +114,14 @@ export default function ResetPasswordPage() {
                 disabled={saving}
                 className="mt-1 w-full bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 hover:shadow active:scale-[0.98] transition disabled:opacity-50"
               >
-                {saving ? "Bezig…" : "Wachtwoord instellen"}
+                {saving ? "Bezig…" : isInvite ? "Account activeren" : "Wachtwoord instellen"}
               </button>
             </form>
           )}
         </div>
+        <p className="text-center text-[11.5px] text-muted mt-6">
+          Onderdeel van Bryan de Zwart Music
+        </p>
       </div>
     </main>
   );

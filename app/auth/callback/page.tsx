@@ -61,7 +61,7 @@ function AuthCallbackInner() {
       }
 
       if (type === "invite" || type === "recovery") {
-        router.replace("/auth/reset");
+        router.replace(`/auth/reset?type=${type}`);
       } else {
         router.replace("/");
       }
