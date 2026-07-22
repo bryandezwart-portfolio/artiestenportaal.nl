@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -18,11 +18,29 @@ function ResetPasswordInner() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [ready, setReady] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
 
   const isInvite = searchParams.get("type") === "invite";
+
+  useEffect(() => {
+    const code = searchParams.get("code");
+
+    async function establishSession() {
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          setError("Deze link is verlopen of ongeldig. Vraag een nieuwe link aan.");
+        }
+      }
+      setReady(true);
+    }
+
+    establishSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -93,6 +111,7 @@ function ResetPasswordInner() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
                   placeholder="Minimaal 8 tekens"
+                  disabled={!ready}
                 />
               </div>
               <div>
@@ -106,12 +125,13 @@ function ResetPasswordInner() {
                   onChange={(e) => setConfirm(e.target.value)}
                   className="w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
                   placeholder="••••••••"
+                  disabled={!ready}
                 />
               </div>
               {error && <p className="text-danger text-[12.5px]">{error}</p>}
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || !ready}
                 className="mt-1 w-full bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 hover:shadow active:scale-[0.98] transition disabled:opacity-50"
               >
                 {saving ? "Bezig…" : isInvite ? "Account activeren" : "Wachtwoord instellen"}
