@@ -4,14 +4,23 @@ import { formatEUR, formatDate } from "@/lib/format";
 import ContractLight from "@/components/contract-light";
 import { getContractLight, daysUntil } from "@/lib/contract-status";
 import IncomeChart from "@/components/income-chart";
+import ArtistFilter from "./artist-filter";
 
 const MONTH_LABELS = [
   "jan", "feb", "mrt", "apr", "mei", "jun",
   "jul", "aug", "sep", "okt", "nov", "dec",
 ];
 
-export default async function Dashboard() {
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: { artistIds?: string };
+}) {
   const supabase = createClient();
+
+  const selectedArtistIds = searchParams.artistIds
+    ? searchParams.artistIds.split(",").filter(Boolean)
+    : [];
 
   const [{ data: releases }, { data: artists }, { data: income }] = await Promise.all([
     supabase.from("releases").select("id, title, label_percent, artist_id, release_date, artists(name)"),
@@ -23,7 +32,34 @@ export default async function Dashboard() {
       .limit(8),
   ]);
 
-  const contractAlerts = (artists ?? [])
+  const { data: allIncome } = await supabase
+    .from("income_entries")
+    .select("gross_amount, label_amount, artist_amount, release_id, entry_date");
+
+  // Map van release -> artiest, gebruikt om inkomsten te filteren op geselecteerde artiest(en)
+  const releaseArtistMap = new Map((releases ?? []).map((r: any) => [r.id, r.artist_id as string]));
+
+  function matchesFilter(releaseId: string | null) {
+    if (selectedArtistIds.length === 0) return true;
+    if (!releaseId) return false;
+    const artistId = releaseArtistMap.get(releaseId);
+    return artistId ? selectedArtistIds.includes(artistId) : false;
+  }
+
+  const visibleArtists =
+    selectedArtistIds.length > 0
+      ? (artists ?? []).filter((a) => selectedArtistIds.includes(a.id))
+      : artists ?? [];
+
+  const visibleReleases =
+    selectedArtistIds.length > 0
+      ? (releases ?? []).filter((r: any) => selectedArtistIds.includes(r.artist_id))
+      : releases ?? [];
+
+  const visibleIncome = (income ?? []).filter((e: any) => matchesFilter(e.release_id));
+  const visibleAllIncome = (allIncome ?? []).filter((e) => matchesFilter(e.release_id));
+
+  const contractAlerts = visibleArtists
     .map((a) => ({ ...a, light: getContractLight(a.contract_end_date) }))
     .filter((a) => a.light === "orange" || a.light === "red")
     .sort((a, b) => (a.contract_end_date! < b.contract_end_date! ? -1 : 1));
@@ -32,21 +68,17 @@ export default async function Dashboard() {
   today.setHours(0, 0, 0, 0);
   const in30Days = new Date(today);
   in30Days.setDate(in30Days.getDate() + 30);
-  const upcomingReleases = (releases ?? [])
-    .filter((r) => {
+  const upcomingReleases = visibleReleases
+    .filter((r: any) => {
       if (!r.release_date) return false;
       const d = new Date(r.release_date);
       return d >= today && d <= in30Days;
     })
-    .sort((a, b) => (a.release_date! < b.release_date! ? -1 : 1));
+    .sort((a: any, b: any) => (a.release_date! < b.release_date! ? -1 : 1));
 
-  const { data: allIncome } = await supabase
-    .from("income_entries")
-    .select("gross_amount, label_amount, artist_amount, release_id, entry_date");
-
-  const totalGross = allIncome?.reduce((s, e) => s + Number(e.gross_amount), 0) ?? 0;
-  const totalLabel = allIncome?.reduce((s, e) => s + Number(e.label_amount), 0) ?? 0;
-  const totalArtist = allIncome?.reduce((s, e) => s + Number(e.artist_amount), 0) ?? 0;
+  const totalGross = visibleAllIncome.reduce((s, e) => s + Number(e.gross_amount), 0);
+  const totalLabel = visibleAllIncome.reduce((s, e) => s + Number(e.label_amount), 0);
+  const totalArtist = visibleAllIncome.reduce((s, e) => s + Number(e.artist_amount), 0);
 
   // Laatste 12 maanden, ook lege maanden tonen zodat de trend klopt
   const monthBuckets: { label: string; gross: number; label_amount: number }[] = [];
@@ -54,7 +86,7 @@ export default async function Dashboard() {
     const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
     monthBuckets.push({ label: MONTH_LABELS[d.getMonth()], gross: 0, label_amount: 0 });
   }
-  for (const e of allIncome ?? []) {
+  for (const e of visibleAllIncome) {
     if (!e.entry_date) continue;
     const d = new Date(e.entry_date);
     const monthsAgo =
@@ -68,8 +100,8 @@ export default async function Dashboard() {
 
   // Top artiesten op basis van artiest-aandeel
   const byArtist = new Map<string, { name: string; total: number }>();
-  for (const entry of allIncome ?? []) {
-    const release = releases?.find((r) => r.id === entry.release_id);
+  for (const entry of visibleAllIncome) {
+    const release = (releases ?? []).find((r: any) => r.id === entry.release_id);
     if (!release) continue;
     const key = release.artist_id;
     const name = (release.artists as any)?.name ?? "Onbekend";
@@ -83,12 +115,13 @@ export default async function Dashboard() {
   return (
     <main className="animate-blur-in px-6 py-10">
       <div className="max-w-5xl mx-auto">
-        <header className="flex items-center justify-between mb-8">
+        <header className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           <div>
             <h1 className="text-[28px] font-semibold text-ink tracking-tight">Overzicht</h1>
             <p className="text-muted text-[13px] mt-0.5">Alle releases, artiesten en verdiensten</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <ArtistFilter artists={artists ?? []} />
             <Link
               href="/dashboard/releases"
               className="text-[13px] font-medium bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 active:scale-[0.98] transition"
@@ -154,7 +187,7 @@ export default async function Dashboard() {
           <StatCard label="Bruto inkomsten" value={formatEUR(totalGross)} accentClass="text-ink" />
           <StatCard label="Label-aandeel" value={formatEUR(totalLabel)} accentClass="text-label" />
           <StatCard label="Artiest-aandeel" value={formatEUR(totalArtist)} accentClass="text-artist" />
-          <StatCard label="Actieve artiesten" value={String(artists?.length ?? 0)} accentClass="text-ink" />
+          <StatCard label="Actieve artiesten" value={String(visibleArtists.length ?? 0)} accentClass="text-ink" />
         </div>
 
         <div className="bg-surface rounded-xl2 shadow-card p-6 mb-6">
@@ -200,10 +233,10 @@ export default async function Dashboard() {
               </Link>
             </div>
             <div className="divide-y divide-line">
-              {(!income || income.length === 0) && (
+              {visibleIncome.length === 0 && (
                 <p className="text-muted text-[13px] p-8 text-center">Nog geen boekingen.</p>
               )}
-              {income?.map((e: any) => (
+              {visibleIncome.map((e: any) => (
                 <div key={e.id} className="flex items-center justify-between px-6 py-3 text-[13px]">
                   <div className="min-w-0">
                     <div className="text-ink font-medium truncate">{e.releases?.title}</div>
@@ -227,10 +260,10 @@ export default async function Dashboard() {
             </Link>
           </div>
           <div className="divide-y divide-line">
-            {(!releases || releases.length === 0) && (
+            {visibleReleases.length === 0 && (
               <p className="text-muted text-[13px] p-8 text-center">Nog geen releases.</p>
             )}
-            {releases?.slice(0, 6).map((r: any) => (
+            {visibleReleases.slice(0, 6).map((r: any) => (
               <Link
                 key={r.id}
                 href={`/dashboard/releases/${r.id}`}
