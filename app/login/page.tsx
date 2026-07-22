@@ -195,7 +195,7 @@ export default function LoginPage() {
                     required
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
-                    maxLength={6}
+                    maxLength={8}
                     className="w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[15px] tracking-[0.3em] text-center text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
                     placeholder="000000"
                   />
@@ -203,7 +203,7 @@ export default function LoginPage() {
                 {error && <p className="text-danger text-[12.5px]">{error}</p>}
                 <button
                   type="submit"
-                  disabled={loading || otp.length !== 6}
+                  disabled={loading || otp.length !== 8}
                   className="mt-1 w-full bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 hover:shadow active:scale-[0.98] transition disabled:opacity-50"
                 >
                   {loading ? "Bezig…" : "Bevestigen"}
