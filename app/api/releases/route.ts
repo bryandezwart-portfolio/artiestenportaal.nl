@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/supabase/require-admin";
+import { logActivity } from "@/lib/log-activity";
 
 export async function POST(request: Request) {
   const check = await requireAdmin();
   if (!check.ok) {
     return NextResponse.json({ error: check.error }, { status: check.status });
   }
-  const { supabase } = check;
+  const { supabase, user } = check;
 
   const body = await request.json();
   const { artistId, title, releaseDate, labelPercent, distributor, isrc, upc, iswc, notes } = body;
@@ -43,6 +44,8 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
+
+  await logActivity(supabase, user.email, "release_created", `Release "${title}" aangemaakt`);
 
   return NextResponse.json({ success: true, id: data.id });
 }

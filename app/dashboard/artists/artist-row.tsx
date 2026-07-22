@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ContractLight from "@/components/contract-light";
 import { daysUntil, getContractLight } from "@/lib/contract-status";
+import { logActivity } from "@/lib/log-activity";
 
 const STATUS_OPTIONS = [
   { value: "niet_gestart", label: "Nog niet gestart", style: "bg-line/60 text-muted" },
@@ -100,6 +101,8 @@ export default function ArtistRow({ artist }: { artist: Artist }) {
       alert("Verwijderen mislukt: " + error.message);
       return;
     }
+    const { data } = await supabase.auth.getUser();
+    await logActivity(supabase, data.user?.email, "artist_deleted", `Artiest "${artist.name}" verwijderd`);
     router.refresh();
   }
 

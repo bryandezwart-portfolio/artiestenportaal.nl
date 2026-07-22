@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { formatEUR, formatDate } from "@/lib/format";
+import { exportToCSV } from "@/lib/csv-export";
 
 type Artist = { id: string; name: string };
 type Release = { id: string; title: string; label_percent: number };
@@ -48,6 +49,20 @@ export default function SettlementView({
 
   const releaseTitle = (id: string) => releases.find((r) => r.id === id)?.title ?? "";
 
+  function handleExport() {
+    exportToCSV(
+      `afrekening-${selectedArtistName}-${from}-${to}`,
+      income.map((e) => ({
+        Datum: e.entry_date,
+        Platform: e.platform,
+        Titel: releaseTitle(e.release_id),
+        "Bruto bedrag": e.gross_amount,
+        "Label %": e.label_percent,
+        "Artiest bedrag": e.artist_amount,
+      }))
+    );
+  }
+
   return (
     <main className="animate-blur-in px-6 py-10">
       <div className="max-w-3xl mx-auto">
@@ -58,12 +73,20 @@ export default function SettlementView({
               Kies een artiest en periode voor een net overzicht om te printen of te delen
             </p>
           </div>
-          <button
-            onClick={() => window.print()}
-            className="text-[13px] font-medium bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 active:scale-[0.98] transition"
-          >
-            Printen / PDF
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleExport}
+              className="text-[13px] font-medium bg-surface border border-line px-4 py-2 rounded-lg hover:bg-surfaceHover transition"
+            >
+              Exporteren (CSV)
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="text-[13px] font-medium bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 active:scale-[0.98] transition"
+            >
+              Printen / PDF
+            </button>
+          </div>
         </header>
 
         <div className="no-print bg-surface rounded-xl2 shadow-card p-6 mb-6 grid sm:grid-cols-3 gap-4">

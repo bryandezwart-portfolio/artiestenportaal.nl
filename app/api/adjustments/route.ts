@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/supabase/require-admin";
+import { logActivity } from "@/lib/log-activity";
 
 export async function POST(request: Request) {
   const check = await requireAdmin();
@@ -29,6 +30,13 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+  await logActivity(
+    supabase,
+    user.email,
+    type === "cost" ? "cost_added" : "advance_added",
+    `${type === "cost" ? "Kosten" : "Voorschot"} geboekt: €${Number(amount).toFixed(2)}`
+  );
+
   return NextResponse.json({ success: true });
 }
 
@@ -37,7 +45,7 @@ export async function DELETE(request: Request) {
   if (!check.ok) {
     return NextResponse.json({ error: check.error }, { status: check.status });
   }
-  const { supabase } = check;
+  const { supabase, user } = check;
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -45,6 +53,8 @@ export async function DELETE(request: Request) {
 
   const { error } = await supabase.from("adjustments").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  await logActivity(supabase, user.email, "adjustment_deleted", `Kosten/voorschot verwijderd`);
 
   return NextResponse.json({ success: true });
 }

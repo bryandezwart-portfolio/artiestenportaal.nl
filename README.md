@@ -92,6 +92,26 @@ insert into label_admins (user_id) values ('jouw-user-uuid');
   (met optionele uitnodigingsmail), contractstatus bijhouden, extra logins
   koppelen (bv. bandleden).
 
+## Nieuwste update — 7 extra functies
+
+- **Zoeken**: live zoekbalk op Releases, Inkomsten en Artiesten (artiest, titel, jaar, datum, ISRC/UPC/ISWC/code).
+- **Inkomstengrafiek**: staafdiagram per maand op het admin-overzicht.
+- **CSV-export**: knop bij Releases, Inkomsten, Artiesten en Afrekening.
+- **Releaseherinneringen**: widget op het dashboard (binnen 30 dagen) + dagelijkse e-mail
+  via een Vercel Cron-job wanneer een release binnen 7 dagen gepland staat. Vereist twee
+  extra env vars: `RESEND_API_KEY` en `CRON_SECRET` (zie `.env.local.example`). Zonder
+  deze vars blijft de rest van de site gewoon werken, alleen de mail wordt overgeslagen.
+- **Bijlagen**: upload/download-knop per boeking (factuur-PDF's etc.), opgeslagen in een
+  privé Supabase Storage-bucket (`attachments`).
+- **Activiteitenlog**: nieuwe pagina `/dashboard/activiteit` — wie heeft wat gewijzigd.
+- **Bulkacties**: selecteer meerdere artiesten om in één keer de contractstatus te wijzigen
+  of te exporteren.
+- **Tracks & split per track**: onder een release kun je losse tracks toevoegen met een
+  eigen ISRC en (optioneel) een afwijkende artiestverdeling — handig bij features/samenwerkingen.
+  Let op: inkomsten worden nog steeds op releaseniveau geboekt, niet per track.
+
+Draai voor deze update `supabase/migration_v6_features.sql` in de SQL Editor.
+
 ## Wat nog bewust simpel is gehouden
 
 - CSV-import verwacht een titel-match met een bestaande release — er is nog

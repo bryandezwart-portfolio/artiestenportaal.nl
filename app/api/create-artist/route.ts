@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SITE_URL } from "@/lib/site-url";
+import { logActivity } from "@/lib/log-activity";
 
 export async function POST(request: Request) {
   try {
@@ -88,6 +89,8 @@ export async function POST(request: Request) {
         .from("artist_users")
         .insert({ artist_id: newArtist.id, user_id: userId });
     }
+
+    await logActivity(supabase, user.email, "artist_created", `Artiest "${name}" aangemaakt`);
 
     return NextResponse.json({ success: true });
   } catch (err) {

@@ -3,12 +3,18 @@ import { createClient } from "@/lib/supabase/server";
 import { formatEUR, formatDate } from "@/lib/format";
 import ContractLight from "@/components/contract-light";
 import { getContractLight, daysUntil } from "@/lib/contract-status";
+import IncomeChart from "@/components/income-chart";
+
+const MONTH_LABELS = [
+  "jan", "feb", "mrt", "apr", "mei", "jun",
+  "jul", "aug", "sep", "okt", "nov", "dec",
+];
 
 export default async function Dashboard() {
   const supabase = createClient();
 
   const [{ data: releases }, { data: artists }, { data: income }] = await Promise.all([
-    supabase.from("releases").select("id, title, label_percent, artist_id, artists(name)"),
+    supabase.from("releases").select("id, title, label_percent, artist_id, release_date, artists(name)"),
     supabase.from("artists").select("id, name, contract_end_date"),
     supabase
       .from("income_entries")
@@ -22,13 +28,43 @@ export default async function Dashboard() {
     .filter((a) => a.light === "orange" || a.light === "red")
     .sort((a, b) => (a.contract_end_date! < b.contract_end_date! ? -1 : 1));
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const in30Days = new Date(today);
+  in30Days.setDate(in30Days.getDate() + 30);
+  const upcomingReleases = (releases ?? [])
+    .filter((r) => {
+      if (!r.release_date) return false;
+      const d = new Date(r.release_date);
+      return d >= today && d <= in30Days;
+    })
+    .sort((a, b) => (a.release_date! < b.release_date! ? -1 : 1));
+
   const { data: allIncome } = await supabase
     .from("income_entries")
-    .select("gross_amount, label_amount, artist_amount, release_id");
+    .select("gross_amount, label_amount, artist_amount, release_id, entry_date");
 
   const totalGross = allIncome?.reduce((s, e) => s + Number(e.gross_amount), 0) ?? 0;
   const totalLabel = allIncome?.reduce((s, e) => s + Number(e.label_amount), 0) ?? 0;
   const totalArtist = allIncome?.reduce((s, e) => s + Number(e.artist_amount), 0) ?? 0;
+
+  // Laatste 12 maanden, ook lege maanden tonen zodat de trend klopt
+  const monthBuckets: { label: string; gross: number; label_amount: number }[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    monthBuckets.push({ label: MONTH_LABELS[d.getMonth()], gross: 0, label_amount: 0 });
+  }
+  for (const e of allIncome ?? []) {
+    if (!e.entry_date) continue;
+    const d = new Date(e.entry_date);
+    const monthsAgo =
+      (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+    if (monthsAgo >= 0 && monthsAgo <= 11) {
+      const bucket = monthBuckets[11 - monthsAgo];
+      bucket.gross += Number(e.gross_amount);
+      bucket.label_amount += Number(e.label_amount);
+    }
+  }
 
   // Top artiesten op basis van artiest-aandeel
   const byArtist = new Map<string, { name: string; total: number }>();
@@ -91,12 +127,43 @@ export default async function Dashboard() {
           </Link>
         )}
 
+        {upcomingReleases.length > 0 && (
+          <div className="bg-surface rounded-xl2 shadow-card p-4 mb-6">
+            <span className="text-[13px] font-semibold text-ink">
+              {upcomingReleases.length} release{upcomingReleases.length === 1 ? "" : "s"} binnenkort
+            </span>
+            <div className="flex flex-col gap-1 mt-2">
+              {upcomingReleases.slice(0, 4).map((r: any) => (
+                <Link
+                  key={r.id}
+                  href={`/dashboard/releases/${r.id}`}
+                  className="flex items-center justify-between text-[12.5px] hover:text-accent transition"
+                >
+                  <span className="text-ink">
+                    {r.title} <span className="text-muted">&middot; {r.artists?.name}</span>
+                  </span>
+                  <span className="text-muted">{formatDate(r.release_date)}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Stat cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <StatCard label="Bruto inkomsten" value={formatEUR(totalGross)} accentClass="text-ink" />
           <StatCard label="Label-aandeel" value={formatEUR(totalLabel)} accentClass="text-label" />
           <StatCard label="Artiest-aandeel" value={formatEUR(totalArtist)} accentClass="text-artist" />
           <StatCard label="Actieve artiesten" value={String(artists?.length ?? 0)} accentClass="text-ink" />
+        </div>
+
+        <div className="bg-surface rounded-xl2 shadow-card p-6 mb-6">
+          <h2 className="text-[13px] font-semibold text-ink mb-4">Bruto inkomsten per maand</h2>
+          {totalGross === 0 ? (
+            <p className="text-muted text-[13px] py-10 text-center">Nog geen inkomsten om te tonen.</p>
+          ) : (
+            <IncomeChart points={monthBuckets} />
+          )}
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">

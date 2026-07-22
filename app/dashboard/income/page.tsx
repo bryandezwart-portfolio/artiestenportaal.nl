@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
 import CsvImport from "./csv-import";
-import { formatEUR, formatDate } from "@/lib/format";
+import IncomeSearchList from "./income-search-list";
+import { formatEUR } from "@/lib/format";
 
 export default async function IncomePage() {
   const supabase = createClient();
@@ -26,30 +26,7 @@ export default async function IncomePage() {
 
         <CsvImport />
 
-        <div className="bg-surface rounded-xl2 shadow-card divide-y divide-line overflow-hidden mt-6">
-          {(!income || income.length === 0) && (
-            <p className="text-muted text-[13px] p-8 text-center">Nog geen boekingen.</p>
-          )}
-          {income?.map((e: any) => (
-            <Link
-              key={e.id}
-              href={`/dashboard/releases/${e.release_id}`}
-              className="flex items-center justify-between px-6 py-3.5 hover:bg-surfaceHover transition text-[13px]"
-            >
-              <div className="min-w-0">
-                <span className="text-[10px] font-medium tracking-wide px-2 py-0.5 rounded-full mr-2 bg-accentSoft text-accent">
-                  {e.platform}
-                </span>
-                <span className="text-ink font-medium">{e.releases?.title}</span>
-                <span className="text-muted"> &middot; {e.releases?.artists?.name}</span>
-              </div>
-              <div className="flex items-center gap-3 shrink-0 ml-3">
-                <span className="text-muted">{formatDate(e.entry_date)}</span>
-                <span className="font-mono text-ink">{formatEUR(e.gross_amount)}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <IncomeSearchList income={(income ?? []) as any} />
       </div>
     </main>
   );

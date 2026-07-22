@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import SplitEditor from "./split-editor";
 import CodesEditor from "./codes-editor";
+import TracksEditor from "./tracks-editor";
 import IncomeForm from "./income-form";
 import AdjustmentForm from "./adjustment-form";
 import EntryRow from "./entry-row";
@@ -19,7 +20,7 @@ export default async function ReleaseDetail({ params }: { params: { releaseId: s
     return <main className="p-10 text-center text-muted">Release niet gevonden.</main>;
   }
 
-  const [{ data: income }, { data: adjustments }] = await Promise.all([
+  const [{ data: income }, { data: adjustments }, { data: tracks }] = await Promise.all([
     supabase
       .from("income_entries")
       .select("*")
@@ -30,6 +31,11 @@ export default async function ReleaseDetail({ params }: { params: { releaseId: s
       .select("*")
       .eq("release_id", params.releaseId)
       .order("entry_date", { ascending: false }),
+    supabase
+      .from("tracks")
+      .select("id, title, isrc, artist_split")
+      .eq("release_id", params.releaseId)
+      .order("created_at", { ascending: true }),
   ]);
 
   const totalGross = income?.reduce((s, e) => s + Number(e.gross_amount), 0) ?? 0;
@@ -56,6 +62,12 @@ export default async function ReleaseDetail({ params }: { params: { releaseId: s
           initialIsrc={release.isrc}
           initialUpc={release.upc}
           initialIswc={release.iswc}
+        />
+
+        <TracksEditor
+          releaseId={release.id}
+          tracks={tracks ?? []}
+          defaultArtistSplit={100 - release.label_percent}
         />
 
         {/* Financieel overzicht */}

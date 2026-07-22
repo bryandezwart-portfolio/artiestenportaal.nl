@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import ArtistRow from "./artist-row";
 import NewArtistForm from "./new-artist-form";
+import ArtistSearchList from "./artist-search-list";
 
 export default async function ArtistsPage() {
   const supabase = createClient();
@@ -22,16 +22,7 @@ export default async function ArtistsPage() {
 
         <NewArtistForm />
 
-        <div className="bg-surface rounded-xl2 shadow-card divide-y divide-line overflow-hidden">
-          {(!artists || artists.length === 0) && (
-            <p className="text-muted text-[13px] p-8 text-center">
-              Nog geen artiesten. Voeg er hierboven een toe.
-            </p>
-          )}
-          {artists?.map((a) => (
-            <ArtistRow key={a.id} artist={a as any} />
-          ))}
-        </div>
+        <ArtistSearchList artists={(artists ?? []) as any} />
       </div>
     </main>
   );

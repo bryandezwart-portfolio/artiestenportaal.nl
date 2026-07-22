@@ -10,6 +10,7 @@ const ADMIN_LINKS = [
   { href: "/dashboard/income", label: "Inkomsten" },
   { href: "/dashboard/artists", label: "Artiesten" },
   { href: "/dashboard/afrekening", label: "Afrekening" },
+  { href: "/dashboard/activiteit", label: "Activiteit" },
 ];
 
 export default function Nav({
