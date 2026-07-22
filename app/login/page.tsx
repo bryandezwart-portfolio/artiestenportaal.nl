@@ -8,6 +8,7 @@ import { SITE_URL } from "@/lib/site-url";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"password" | "link" | "forgot">("password");
@@ -45,6 +46,24 @@ export default function LoginPage() {
     setSent(true);
   }
 
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: otp,
+      type: "email",
+    });
+    setLoading(false);
+    if (error) {
+      setError("Code onjuist of verlopen. Vraag eventueel een nieuwe code aan.");
+      return;
+    }
+    router.push("/");
+    router.refresh();
+  }
+
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -63,6 +82,7 @@ export default function LoginPage() {
   function switchMode(next: "password" | "link" | "forgot") {
     setMode(next);
     setSent(false);
+    setOtp("");
     setError("");
   }
 
@@ -104,7 +124,7 @@ export default function LoginPage() {
                   mode === "link" ? "bg-surfaceHover text-ink" : "text-muted"
                 }`}
               >
-                E-maillink
+                E-mailcode
               </button>
             </div>
           )}
@@ -159,10 +179,47 @@ export default function LoginPage() {
 
           {mode === "link" &&
             (sent ? (
-              <p className="text-[13.5px] text-ink text-center py-4">
-                <span className="text-accent">✓</span> Check je inbox — we hebben een inloglink
-                gestuurd naar <strong>{email}</strong>.
-              </p>
+              <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
+                <p className="text-[13.5px] text-ink text-center">
+                  <span className="text-accent">✓</span> Check je inbox — we hebben een code
+                  gestuurd naar <strong>{email}</strong>.
+                </p>
+                <div>
+                  <label className="text-[11.5px] font-medium text-muted mb-1.5 block">
+                    Voer de 6-cijferige code in
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    required
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
+                    maxLength={6}
+                    className="w-full rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[15px] tracking-[0.3em] text-center text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+                    placeholder="000000"
+                  />
+                </div>
+                {error && <p className="text-danger text-[12.5px]">{error}</p>}
+                <button
+                  type="submit"
+                  disabled={loading || otp.length !== 6}
+                  className="mt-1 w-full bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 hover:shadow active:scale-[0.98] transition disabled:opacity-50"
+                >
+                  {loading ? "Bezig…" : "Bevestigen"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSent(false);
+                    setOtp("");
+                    setError("");
+                  }}
+                  className="text-[12px] text-muted hover:text-ink transition"
+                >
+                  ← Andere code aanvragen
+                </button>
+              </form>
             ) : (
               <form onSubmit={handleMagicLink} className="flex flex-col gap-4">
                 <div>
@@ -184,7 +241,7 @@ export default function LoginPage() {
                   disabled={loading}
                   className="mt-1 w-full bg-accent text-white text-[13.5px] font-medium rounded-lg py-2.5 shadow-sm hover:bg-accent/90 hover:shadow active:scale-[0.98] transition disabled:opacity-50"
                 >
-                  {loading ? "Bezig…" : "Stuur inloglink"}
+                  {loading ? "Bezig…" : "Stuur inlogcode"}
                 </button>
               </form>
             ))}
