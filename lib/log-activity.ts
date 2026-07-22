@@ -17,4 +17,14 @@ export async function logActivity(
   } catch {
     // stil negeren — logging mag nooit de echte actie blokkeren
   }
+
+  // Bewaartermijn: maximaal 90 dagen aan activiteiten. Alles ouder dan dat
+  // wordt hier opgeruimd, best-effort, zodat de log niet onbeperkt groeit.
+  try {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    await supabase.from("activity_log").delete().lt("created_at", cutoff.toISOString());
+  } catch {
+    // stil negeren — opschonen mag nooit de echte actie blokkeren
+  }
 }
