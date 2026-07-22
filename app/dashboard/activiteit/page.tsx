@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/format";
+import CleanupButton from "./cleanup-button";
 
 export default async function ActivityPage() {
   const supabase = createClient();
-
   const { data: entries } = await supabase
     .from("activity_log")
     .select("*")
@@ -13,13 +13,15 @@ export default async function ActivityPage() {
   return (
     <main className="animate-blur-in px-6 py-10">
       <div className="max-w-3xl mx-auto">
-        <header className="mb-7">
-          <h1 className="text-[28px] font-semibold text-ink tracking-tight">Activiteit</h1>
-          <p className="text-muted text-[13px] mt-0.5">
-            Overzicht van wie wat heeft gewijzigd
-          </p>
+        <header className="mb-7 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-[28px] font-semibold text-ink tracking-tight">Activiteit</h1>
+            <p className="text-muted text-[13px] mt-0.5">
+              Overzicht van wie wat heeft gewijzigd &middot; wordt automatisch na 90 dagen opgeschoond
+            </p>
+          </div>
+          <CleanupButton />
         </header>
-
         <div className="bg-surface rounded-xl2 shadow-card divide-y divide-line overflow-hidden">
           {(!entries || entries.length === 0) && (
             <p className="text-muted text-[13px] p-8 text-center">Nog geen activiteit gelogd.</p>
