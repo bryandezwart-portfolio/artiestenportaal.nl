@@ -29,10 +29,28 @@ function ResetPasswordInner() {
     const code = searchParams.get("code");
 
     async function establishSession() {
+      // Eerst checken of er al een geldige sessie is: de Supabase-client kan de
+      // code namelijk al automatisch verwerkt hebben bij het laden van de pagina
+      // (bijvoorbeeld doordat een e-mailscanner zoals Outlook Safe Links de link
+      // alvast heeft geopend). Zonder deze check zou de handmatige
+      // exchangeCodeForSession hieronder altijd falen (de code is dan al
+      // gebruikt) terwijl er stiekem al een geldige sessie klaarstond — dat gaf
+      // eerder een verwarrende, onterechte foutmelding.
+      const { data: existingSession } = await supabase.auth.getSession();
+      if (existingSession.session) {
+        setReady(true);
+        return;
+      }
+
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
-          setError("Deze link is verlopen of ongeldig. Vraag een nieuwe link aan.");
+          // Ook hier: nogmaals checken voordat we de foutmelding tonen, voor
+          // het geval de sessie tussendoor alsnog tot stand kwam.
+          const { data: retrySession } = await supabase.auth.getSession();
+          if (!retrySession.session) {
+            setError("Deze link is verlopen of ongeldig. Vraag een nieuwe link aan.");
+          }
         }
       }
       setReady(true);
