@@ -47,3 +47,47 @@ export async function GET(request: Request) {
 
   return NextResponse.json({ members });
 }
+
+export async function DELETE(request: Request) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
+  }
+
+  const { data: admin } = await supabase
+    .from("label_admins")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!admin) {
+    return NextResponse.json({ error: "Geen toegang." }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const artistId = searchParams.get("artistId");
+  const userId = searchParams.get("userId");
+
+  if (!artistId || !userId) {
+    return NextResponse.json({ error: "artistId en userId zijn verplicht." }, { status: 400 });
+  }
+
+  // Ontkoppelt alleen de login van deze artiest — het onderliggende
+  // Supabase-account zelf blijft bestaan (kan eventueel los verwijderd
+  // worden via Authentication → Users als dat ook echt de bedoeling is).
+  const { error } = await supabase
+    .from("artist_users")
+    .delete()
+    .eq("artist_id", artistId)
+    .eq("user_id", userId);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ success: true });
+}

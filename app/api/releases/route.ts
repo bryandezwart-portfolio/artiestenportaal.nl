@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   const { supabase } = check;
 
   const body = await request.json();
-  const { artistId, title, releaseDate, labelPercent, distributor, notes } = body;
+  const { artistId, title, releaseDate, labelPercent, distributor, isrc, upc, iswc, notes } = body;
 
   if (!artistId || !title || labelPercent === undefined || labelPercent === null) {
     return NextResponse.json(
@@ -32,6 +32,9 @@ export async function POST(request: Request) {
       label_percent: pct,
       artist_split: 100 - pct, // legacy kolom, blijft gesynchroniseerd
       distributor: distributor || null,
+      isrc: isrc || null,
+      upc: upc || null,
+      iswc: iswc || null,
       notes: notes || null,
     })
     .select("id")
@@ -52,7 +55,7 @@ export async function PATCH(request: Request) {
   const { supabase } = check;
 
   const body = await request.json();
-  const { id, title, releaseDate, labelPercent, distributor, notes } = body;
+  const { id, title, releaseDate, labelPercent, distributor, isrc, upc, iswc, notes } = body;
 
   if (!id) {
     return NextResponse.json({ error: "id ontbreekt." }, { status: 400 });
@@ -62,6 +65,9 @@ export async function PATCH(request: Request) {
   if (title !== undefined) update.title = title;
   if (releaseDate !== undefined) update.release_date = releaseDate || null;
   if (distributor !== undefined) update.distributor = distributor || null;
+  if (isrc !== undefined) update.isrc = isrc || null;
+  if (upc !== undefined) update.upc = upc || null;
+  if (iswc !== undefined) update.iswc = iswc || null;
   if (notes !== undefined) update.notes = notes || null;
   if (labelPercent !== undefined) {
     const pct = Number(labelPercent);

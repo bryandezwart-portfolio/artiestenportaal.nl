@@ -12,6 +12,9 @@ export default function NewReleaseForm({ artists }: { artists: Artist[] }) {
   const [releaseDate, setReleaseDate] = useState("");
   const [labelPercent, setLabelPercent] = useState("20");
   const [distributor, setDistributor] = useState("");
+  const [isrc, setIsrc] = useState("");
+  const [upc, setUpc] = useState("");
+  const [iswc, setIswc] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -31,6 +34,9 @@ export default function NewReleaseForm({ artists }: { artists: Artist[] }) {
         releaseDate: releaseDate || null,
         labelPercent: Number(labelPercent),
         distributor,
+        isrc,
+        upc,
+        iswc,
         notes,
       }),
     });
@@ -45,6 +51,9 @@ export default function NewReleaseForm({ artists }: { artists: Artist[] }) {
     setTitle("");
     setReleaseDate("");
     setDistributor("");
+    setIsrc("");
+    setUpc("");
+    setIswc("");
     setNotes("");
     setOpen(false);
     router.refresh();
@@ -134,6 +143,39 @@ export default function NewReleaseForm({ artists }: { artists: Artist[] }) {
             onChange={(e) => setDistributor(e.target.value)}
             placeholder="bv. Label Distro BV"
             className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+          />
+        </div>
+        <div>
+          <label className="text-[11.5px] font-medium text-muted mb-1.5 block">
+            ISRC <span className="text-muted font-normal">(optioneel)</span>
+          </label>
+          <input
+            value={isrc}
+            onChange={(e) => setIsrc(e.target.value)}
+            placeholder="bv. NLB123456789"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] font-mono text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+          />
+        </div>
+        <div>
+          <label className="text-[11.5px] font-medium text-muted mb-1.5 block">
+            UPC/EAN <span className="text-muted font-normal">(optioneel)</span>
+          </label>
+          <input
+            value={upc}
+            onChange={(e) => setUpc(e.target.value)}
+            placeholder="bv. 0123456789012"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] font-mono text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+          />
+        </div>
+        <div>
+          <label className="text-[11.5px] font-medium text-muted mb-1.5 block">
+            ISWC <span className="text-muted font-normal">(optioneel)</span>
+          </label>
+          <input
+            value={iswc}
+            onChange={(e) => setIswc(e.target.value)}
+            placeholder="bv. T-123456789-0"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] font-mono text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           />
         </div>
         <div>

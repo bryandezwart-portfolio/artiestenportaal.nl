@@ -1,19 +1,26 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatEUR, formatDate } from "@/lib/format";
+import ContractLight from "@/components/contract-light";
+import { getContractLight, daysUntil } from "@/lib/contract-status";
 
 export default async function Dashboard() {
   const supabase = createClient();
 
   const [{ data: releases }, { data: artists }, { data: income }] = await Promise.all([
     supabase.from("releases").select("id, title, label_percent, artist_id, artists(name)"),
-    supabase.from("artists").select("id, name"),
+    supabase.from("artists").select("id, name, contract_end_date"),
     supabase
       .from("income_entries")
       .select("id, entry_date, platform, gross_amount, label_amount, artist_amount, release_id, releases(title, artists(name))")
       .order("entry_date", { ascending: false })
       .limit(8),
   ]);
+
+  const contractAlerts = (artists ?? [])
+    .map((a) => ({ ...a, light: getContractLight(a.contract_end_date) }))
+    .filter((a) => a.light === "orange" || a.light === "red")
+    .sort((a, b) => (a.contract_end_date! < b.contract_end_date! ? -1 : 1));
 
   const { data: allIncome } = await supabase
     .from("income_entries")
@@ -54,6 +61,35 @@ export default async function Dashboard() {
             </Link>
           </div>
         </header>
+
+        {contractAlerts.length > 0 && (
+          <Link
+            href="/dashboard/artists"
+            className="block bg-surface rounded-xl2 shadow-card p-4 mb-6 hover:bg-surfaceHover transition"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <ContractLight endDate={contractAlerts[0].contract_end_date} />
+              <span className="text-[13px] font-semibold text-ink">
+                {contractAlerts.length} contract{contractAlerts.length === 1 ? "" : "en"} vraagt aandacht
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {contractAlerts.slice(0, 4).map((a) => (
+                <div key={a.id} className="flex items-center justify-between text-[12.5px]">
+                  <span className="text-ink flex items-center gap-2">
+                    <ContractLight endDate={a.contract_end_date} />
+                    {a.name}
+                  </span>
+                  <span className="text-muted">
+                    {daysUntil(a.contract_end_date!) >= 0
+                      ? `loopt af over ${daysUntil(a.contract_end_date!)} dagen`
+                      : `verlopen sinds ${Math.abs(daysUntil(a.contract_end_date!))} dagen`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Link>
+        )}
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

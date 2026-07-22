@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function NewArtistForm() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [artistCode, setArtistCode] = useState("");
   const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -19,7 +20,7 @@ export default function NewArtistForm() {
     const res = await fetch("/api/create-artist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email }),
+      body: JSON.stringify({ name, email, artistCode }),
     });
     const data = await res.json();
     setSaving(false);
@@ -30,6 +31,7 @@ export default function NewArtistForm() {
     }
 
     setName("");
+    setArtistCode("");
     setEmail("");
     setOpen(false);
     router.refresh();
@@ -71,6 +73,17 @@ export default function NewArtistForm() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Artiestennaam"
             className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+          />
+        </div>
+        <div>
+          <label className="text-[11.5px] font-medium text-muted mb-1.5 block">
+            Artiestcode <span className="text-muted font-normal">(optioneel, eigen indeling)</span>
+          </label>
+          <input
+            value={artistCode}
+            onChange={(e) => setArtistCode(e.target.value)}
+            placeholder="bv. ART-001"
+            className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-[13.5px] font-mono text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           />
         </div>
         <div>

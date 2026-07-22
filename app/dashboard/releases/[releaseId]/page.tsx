@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import SplitEditor from "./split-editor";
+import CodesEditor from "./codes-editor";
 import IncomeForm from "./income-form";
 import AdjustmentForm from "./adjustment-form";
 import EntryRow from "./entry-row";
@@ -10,7 +11,7 @@ export default async function ReleaseDetail({ params }: { params: { releaseId: s
 
   const { data: release } = await supabase
     .from("releases")
-    .select("id, title, label_percent, release_date, distributor, notes, artists(name)")
+    .select("id, title, label_percent, release_date, distributor, isrc, upc, iswc, notes, artists(name)")
     .eq("id", params.releaseId)
     .single();
 
@@ -49,6 +50,13 @@ export default async function ReleaseDetail({ params }: { params: { releaseId: s
         </p>
 
         <SplitEditor releaseId={release.id} initialLabelPercent={release.label_percent} />
+
+        <CodesEditor
+          releaseId={release.id}
+          initialIsrc={release.isrc}
+          initialUpc={release.upc}
+          initialIswc={release.iswc}
+        />
 
         {/* Financieel overzicht */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">

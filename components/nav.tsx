@@ -63,6 +63,12 @@ export default function Nav({
           <span className="text-[13px] text-muted hidden sm:inline truncate max-w-[180px]">
             {email}
           </span>
+          <Link
+            href="/account/password"
+            className="text-[13px] text-muted hover:text-ink transition"
+          >
+            Wachtwoord
+          </Link>
           <button
             onClick={handleSignOut}
             className="text-[13px] font-medium text-ink bg-surface border border-line hover:bg-surfaceHover px-3 py-1.5 rounded-lg transition-colors duration-150"
