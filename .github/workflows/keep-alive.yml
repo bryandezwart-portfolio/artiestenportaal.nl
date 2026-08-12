@@ -2,7 +2,7 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    - cron: '0 3 * * 1'  # elke maandag om 03:00 UTC
+    - cron: '0 3,11,19 * * *'  # elke dag om 03:00, 11:00 en 19:00 UTC
   workflow_dispatch:
 
 jobs:
