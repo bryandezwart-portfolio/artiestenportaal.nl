@@ -206,13 +206,13 @@ export default function ActDetail({
               </div>
 
               <div className="flex gap-2">
-                <button
+                <button type="button"
                   onClick={saveEditing}
                   className="rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800"
                 >
                   Opslaan
                 </button>
-                <button
+                <button type="button"
                   onClick={cancelEditing}
                   className="rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
                 >
