@@ -188,8 +188,8 @@ function ActPicker({
   );
 }
 
-export default function NewBookingForm() {
-  const [actId, setActId] = useState<number>(MOCK_ACTS[0].id);
+export default function NewBookingForm({ acts = MOCK_ACTS }: { acts?: Act[] }) {
+  const [actId, setActId] = useState<any>(acts[0].id);
   const [date, setDate] = useState("");
   const [start, setStart] = useState("21:00");
   const [end, setEnd] = useState("23:00");
@@ -199,7 +199,7 @@ export default function NewBookingForm() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
-  const selectedAct = MOCK_ACTS.find((a) => a.id === actId)!;
+  const selectedAct = acts.find((a) => a.id === actId)!;
   const uren = useMemo(() => (start && end ? durationHours(start, end) : 0), [start, end]);
   const bezoekers = parseInt(bezoekersInput || "0", 10) || 0;
   const toeslag = applicableToeslag(selectedAct.tiers, bezoekers);
@@ -221,7 +221,7 @@ export default function NewBookingForm() {
     return checkConflict(actId, date, start, end);
   }, [actId, date, start, end]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!date || !start || !end || !locatie.trim()) {
       setError("Vul alle velden in voordat je de boeking aanmaakt.");
@@ -232,6 +232,28 @@ export default function NewBookingForm() {
       return;
     }
     setError("");
+
+    const res = await fetch("/api/bookings/boekingen", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        act_id: actId,
+        datum: date,
+        start_tijd: start,
+        eind_tijd: end,
+        locatie: locatie.trim(),
+        bezoekers: bezoekers || null,
+        basistarief: basisTarief,
+        toeslag: toeslag?.toeslag || 0,
+        commissie: commissieValue || 0,
+        gage: gage || 0,
+      }),
+    });
+
+    if (!res.ok) {
+      setError("Opslaan is niet gelukt. Probeer het nog eens.");
+      return;
+    }
     setSubmitted(true);
   }
 
@@ -265,7 +287,7 @@ export default function NewBookingForm() {
         <div className="space-y-5">
           <div>
             <label className="mb-1.5 block text-[13px] font-medium text-neutral-700">Act</label>
-            <ActPicker acts={MOCK_ACTS} selectedId={actId} onSelect={setActId} />
+            <ActPicker acts={acts} selectedId={actId} onSelect={setActId} />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
