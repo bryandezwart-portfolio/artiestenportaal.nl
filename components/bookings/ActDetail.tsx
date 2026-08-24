@@ -4,15 +4,35 @@ import React, { useState } from "react";
 
 type ActType = "dj" | "artiest" | "band";
 
-interface ActData {
+interface Act {
+  id: string;
   slug: string;
   name: string;
   type: ActType;
   genres: string[];
-  tarief: string;
-  contact: { naam: string; rol: string; email: string; telefoon: string };
-  bookingenDezeMaand: { id: number; dag: string; tijd: string; locatie: string; status: string }[];
-  onbeschikbaarheid: { id: number; van: string; tot: string; reden: string }[];
+  tarief_type: "vast" | "uur";
+  tarief_bedrag: number;
+  standaard_commissie: number;
+  contact_naam: string | null;
+  contact_rol: string | null;
+  contact_email: string | null;
+  contact_telefoon: string | null;
+}
+
+interface Booking {
+  id: string;
+  datum: string;
+  start_tijd: string;
+  eind_tijd: string;
+  locatie: string;
+  status: string;
+}
+
+interface Onbeschikbaarheid {
+  id: string;
+  van: string;
+  tot: string;
+  reden: string | null;
 }
 
 const TYPE_STYLES: Record<ActType, { label: string; badge: string }> = {
@@ -21,56 +41,44 @@ const TYPE_STYLES: Record<ActType, { label: string; badge: string }> = {
   band: { label: "Band", badge: "bg-blue-50 text-blue-700" },
 };
 
-const ACTS_DATA: Record<string, ActData> = {
-  "dj-lumo": {
-    slug: "dj-lumo",
-    name: "DJ Lumo",
-    type: "dj",
-    genres: ["House", "Techno"],
-    tarief: "€ 450",
-    contact: { naam: "Mila Verhoeven", rol: "Manager", email: "mila@lumobooking.nl", telefoon: "06 12345678" },
-    bookingenDezeMaand: [
-      { id: 1, dag: "Vr 28 aug", tijd: "22:00 – 02:00", locatie: "Club Vault, Arnhem", status: "Definitief bevestigd" },
-    ],
-    onbeschikbaarheid: [{ id: 1, van: "3 sep", tot: "10 sep", reden: "Vakantie" }],
-  },
-  "sanne-de-wilde": {
-    slug: "sanne-de-wilde",
-    name: "Sanne de Wilde",
-    type: "artiest",
-    genres: ["Nederpop"],
-    tarief: "€ 850",
-    contact: { naam: "Sanne de Wilde", rol: "Artiest (zelf)", email: "sanne@email.nl", telefoon: "06 98765432" },
-    bookingenDezeMaand: [
-      { id: 1, dag: "Za 29 aug", tijd: "20:30 – 21:30", locatie: "Café De Kroon, Doetinchem", status: "Definitief bevestigd" },
-    ],
-    onbeschikbaarheid: [],
-  },
-  "the-riverbeats": {
-    slug: "the-riverbeats",
-    name: "The Riverbeats",
-    type: "band",
-    genres: ["Coverband", "Nederlandstalig"],
-    tarief: "€ 1.200",
-    contact: { naam: "Tom Jansen", rol: "Bandleider", email: "tom@riverbeats.nl", telefoon: "06 55501234" },
-    bookingenDezeMaand: [
-      { id: 1, dag: "Za 29 aug", tijd: "21:00 – 23:30", locatie: "Bruiloft, Zutphen", status: "Definitief bevestigd" },
-    ],
-    onbeschikbaarheid: [{ id: 1, van: "15 sep", tot: "22 sep", reden: "Volgeboekt" }],
-  },
-};
+function formatEuro(n: number): string {
+  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(n);
+}
 
-export default function ActDetail({ slug }: { slug: string }) {
-  const act = ACTS_DATA[slug];
+function formatDag(datum: string): string {
+  return new Intl.DateTimeFormat("nl-NL", { weekday: "short", day: "numeric", month: "short" }).format(
+    new Date(datum)
+  );
+}
+
+function formatTijd(tijd: string): string {
+  return tijd.slice(0, 5);
+}
+
+function formatDatumKort(datum: string): string {
+  return new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short" }).format(new Date(datum));
+}
+
+export default function ActDetail({
+  act,
+  bookingen,
+  onbeschikbaarheid,
+}: {
+  act: Act;
+  bookingen: Booking[];
+  onbeschikbaarheid: Onbeschikbaarheid[];
+}) {
   const [copied, setCopied] = useState(false);
-
-  if (!act) {
-    return (
-      <div className="mx-auto max-w-lg px-6 py-16 text-center">
-        <p className="text-[14px] text-neutral-500">Deze act bestaat niet (nog).</p>
-      </div>
-    );
-  }
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState({
+    name: act.name,
+    tarief_bedrag: act.tarief_bedrag,
+    genres: act.genres,
+    contact_naam: act.contact_naam || "",
+    contact_rol: act.contact_rol || "",
+    contact_email: act.contact_email || "",
+    contact_telefoon: act.contact_telefoon || "",
+  });
 
   const calendarUrl =
     typeof window !== "undefined" ? `${window.location.origin}/api/calendar/${act.slug}` : `/api/calendar/${act.slug}`;
@@ -82,6 +90,36 @@ export default function ActDetail({ slug }: { slug: string }) {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  function startEditing() {
+    setDraft({
+      name: act.name,
+      tarief_bedrag: act.tarief_bedrag,
+      genres: act.genres,
+      contact_naam: act.contact_naam || "",
+      contact_rol: act.contact_rol || "",
+      contact_email: act.contact_email || "",
+      contact_telefoon: act.contact_telefoon || "",
+    });
+    setEditing(true);
+  }
+
+  function cancelEditing() {
+    setEditing(false);
+  }
+
+  async function saveEditing() {
+    const res = await fetch(`/api/bookings/acts/${act.slug}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(draft),
+    });
+    if (res.ok) {
+      window.location.reload();
+    } else {
+      alert("Opslaan is niet gelukt. Probeer het nog eens.");
+    }
+  }
+
   return (
     <div
       className="min-h-screen bg-neutral-50 px-6 py-10 sm:px-10"
@@ -89,44 +127,147 @@ export default function ActDetail({ slug }: { slug: string }) {
     >
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{act.name}</h1>
-              <span className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-medium ${TYPE_STYLES[act.type].badge}`}>
-                {TYPE_STYLES[act.type].label}
-              </span>
+          {editing ? (
+            <div className="space-y-4">
+              <p className="text-[13px] font-medium text-neutral-400">Act bewerken</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Naam</label>
+                  <input
+                    type="text"
+                    value={draft.name}
+                    onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                    className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">
+                    Tarief ({act.tarief_type === "uur" ? "per uur" : "per optreden"})
+                  </label>
+                  <input
+                    type="number"
+                    value={draft.tarief_bedrag}
+                    onChange={(e) => setDraft({ ...draft, tarief_bedrag: parseFloat(e.target.value) || 0 })}
+                    className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Genres (met komma's gescheiden)</label>
+                <input
+                  type="text"
+                  value={draft.genres.join(", ")}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      genres: e.target.value
+                        .split(",")
+                        .map((g) => g.trim())
+                        .filter(Boolean),
+                    })
+                  }
+                  className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+                />
+              </div>
+
+              <div className="border-t border-neutral-100 pt-4">
+                <p className="mb-3 text-[13px] font-medium text-neutral-700">Contactpersoon / manager</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    value={draft.contact_naam}
+                    onChange={(e) => setDraft({ ...draft, contact_naam: e.target.value })}
+                    placeholder="Naam"
+                    className="rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    value={draft.contact_rol}
+                    onChange={(e) => setDraft({ ...draft, contact_rol: e.target.value })}
+                    placeholder="Rol"
+                    className="rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                  />
+                  <input
+                    type="email"
+                    value={draft.contact_email}
+                    onChange={(e) => setDraft({ ...draft, contact_email: e.target.value })}
+                    placeholder="E-mailadres"
+                    className="rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    value={draft.contact_telefoon}
+                    onChange={(e) => setDraft({ ...draft, contact_telefoon: e.target.value })}
+                    placeholder="Telefoonnummer"
+                    className="rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={saveEditing}
+                  className="rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800"
+                >
+                  Opslaan
+                </button>
+                <button
+                  onClick={cancelEditing}
+                  className="rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
+                >
+                  Annuleren
+                </button>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[11px] uppercase tracking-wide text-neutral-400">Tarief</p>
-              <p className="text-[17px] font-semibold text-neutral-900">{act.tarief}</p>
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{act.name}</h1>
+                  <span className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-medium ${TYPE_STYLES[act.type].badge}`}>
+                    {TYPE_STYLES[act.type].label}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] uppercase tracking-wide text-neutral-400">Tarief</p>
+                  <p className="text-[17px] font-semibold text-neutral-900">
+                    {formatEuro(act.tarief_bedrag)}
+                    {act.tarief_type === "uur" && <span className="text-[13px] text-neutral-400"> /uur</span>}
+                  </p>
+                </div>
+              </div>
 
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {act.genres.map((g) => (
-              <span key={g} className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs text-neutral-600">
-                {g}
-              </span>
-            ))}
-          </div>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {act.genres.map((g) => (
+                  <span key={g} className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs text-neutral-600">
+                    {g}
+                  </span>
+                ))}
+              </div>
 
-          <div className="mt-4 border-t border-neutral-100 pt-4">
-            <p className="text-[13px] text-neutral-900">
-              {act.contact.naam} · <span className="text-neutral-400">{act.contact.rol}</span>
-            </p>
-            <p className="mt-0.5 text-[13px] text-neutral-500">
-              {act.contact.email} · {act.contact.telefoon}
-            </p>
-          </div>
+              <div className="mt-4 border-t border-neutral-100 pt-4">
+                <p className="text-[13px] text-neutral-900">
+                  {act.contact_naam} <span className="text-neutral-400">· {act.contact_rol}</span>
+                </p>
+                <p className="mt-0.5 text-[13px] text-neutral-500">
+                  {act.contact_email} · {act.contact_telefoon}
+                </p>
+              </div>
 
-          <div className="mt-5 flex gap-2">
-            <button className="rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800">
-              Magic link versturen
-            </button>
-            <button className="rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50">
-              Bewerken
-            </button>
-          </div>
+              <div className="mt-5 flex gap-2">
+                <button className="rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800">
+                  Magic link versturen
+                </button>
+                <button
+                  onClick={startEditing}
+                  className="rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
+                >
+                  Bewerken
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -150,7 +291,6 @@ export default function ActDetail({ slug }: { slug: string }) {
               {copied ? "Gekopieerd" : "Kopieer"}
             </button>
           </div>
-          
           <a
             href={webcalUrl}
             className="mt-2 inline-block text-[12px] text-neutral-400 underline decoration-neutral-300 underline-offset-2 hover:text-neutral-600"
@@ -167,17 +307,19 @@ export default function ActDetail({ slug }: { slug: string }) {
             </button>
           </div>
           <div className="mt-4 space-y-2">
-            {act.bookingenDezeMaand.length === 0 ? (
+            {bookingen.length === 0 ? (
               <p className="text-[13px] text-neutral-400">Geen boekingen deze maand.</p>
             ) : (
-              act.bookingenDezeMaand.map((b) => (
+              bookingen.map((b) => (
                 <div key={b.id} className="flex items-center justify-between rounded-xl border border-neutral-100 px-4 py-3">
                   <div>
-                    <p className="text-[14px] font-medium text-neutral-900">{b.dag}</p>
+                    <p className="text-[14px] font-medium text-neutral-900">{formatDag(b.datum)}</p>
                     <p className="text-[13px] text-neutral-500">{b.locatie}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[13px] font-medium text-neutral-900">{b.tijd}</p>
+                    <p className="text-[13px] font-medium text-neutral-900">
+                      {formatTijd(b.start_tijd)} – {formatTijd(b.eind_tijd)}
+                    </p>
                     <p className="text-[11px] text-emerald-600">{b.status}</p>
                   </div>
                 </div>
@@ -193,13 +335,13 @@ export default function ActDetail({ slug }: { slug: string }) {
             je boekt.
           </p>
           <div className="mt-4 space-y-2">
-            {act.onbeschikbaarheid.length === 0 ? (
+            {onbeschikbaarheid.length === 0 ? (
               <p className="text-[13px] text-neutral-400">Geen onbeschikbaarheid opgegeven.</p>
             ) : (
-              act.onbeschikbaarheid.map((u) => (
+              onbeschikbaarheid.map((u) => (
                 <div key={u.id} className="flex items-center justify-between rounded-xl bg-neutral-50 px-4 py-2.5">
                   <span className="text-[13px] text-neutral-700">
-                    {u.van} – {u.tot}
+                    {formatDatumKort(u.van)} – {formatDatumKort(u.tot)}
                   </span>
                   <span className="text-[13px] text-neutral-500">{u.reden}</span>
                 </div>

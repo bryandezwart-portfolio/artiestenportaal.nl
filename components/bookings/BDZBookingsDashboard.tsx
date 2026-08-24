@@ -287,16 +287,16 @@ function AankomendeActsSidebar({ acts, events }: { acts: Act[]; events: BookingE
   );
 }
 
-export default function BDZBookingsDashboard() {
+export default function BDZBookingsDashboard({ acts = MOCK_ACTS }: { acts?: Act[] }) {
   const [tab, setTab] = useState<"acts" | "agenda">("acts");
   const [query, setQuery] = useState("");
   const [agendaQuery, setAgendaQuery] = useState("");
 
   const filteredActs = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return MOCK_ACTS;
-    return MOCK_ACTS.filter((a) => a.name.toLowerCase().includes(q));
-  }, [query]);
+    if (!q) return acts;
+    return acts.filter((a) => a.name.toLowerCase().includes(q));
+  }, [query, acts]);
 
   const filteredEvents = useMemo(() => {
     const q = agendaQuery.trim().toLowerCase();
