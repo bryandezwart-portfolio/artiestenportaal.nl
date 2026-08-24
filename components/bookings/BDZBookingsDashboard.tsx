@@ -287,7 +287,7 @@ function AankomendeActsSidebar({ acts, events }: { acts: Act[]; events: BookingE
   );
 }
 
-export default function BDZBookingsDashboard({ acts = MOCK_ACTS }: { acts?: Act[] }) {
+export default function BDZBookingsDashboard({ acts = MOCK_ACTS, events = MOCK_EVENTS }: { acts?: Act[]; events?: BookingEvent[] }) {
   const [tab, setTab] = useState<"acts" | "agenda">("acts");
   const [query, setQuery] = useState("");
   const [agendaQuery, setAgendaQuery] = useState("");
@@ -300,13 +300,13 @@ export default function BDZBookingsDashboard({ acts = MOCK_ACTS }: { acts?: Act[
 
   const filteredEvents = useMemo(() => {
     const q = agendaQuery.trim().toLowerCase();
-    if (!q) return MOCK_EVENTS;
-    return MOCK_EVENTS.filter((e) => {
-      const act = MOCK_ACTS.find((a) => a.id === e.actId);
+    if (!q) return events;
+    return events.filter((e) => {
+      const act = acts.find((a) => a.id === e.actId);
       const haystack = `${act?.name || ""} ${e.locatie} ${e.dag}`.toLowerCase();
       return haystack.includes(q);
     });
-  }, [agendaQuery]);
+  }, [agendaQuery, events, acts]);
 
   return (
     <div
@@ -383,9 +383,9 @@ export default function BDZBookingsDashboard({ acts = MOCK_ACTS }: { acts?: Act[
         ) : (
           <div className="flex flex-col gap-6 lg:flex-row">
             <div className="flex-1">
-              <Agenda acts={MOCK_ACTS} events={filteredEvents} />
+              <Agenda acts={acts} events={filteredEvents} />
             </div>
-            <AankomendeActsSidebar acts={MOCK_ACTS} events={filteredEvents} />
+            <AankomendeActsSidebar acts={acts} events={filteredEvents} />
           </div>
         )}
       </div>

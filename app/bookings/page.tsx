@@ -11,31 +11,50 @@ function formatTarief(bedrag: number, type: string) {
 export default async function BookingsPage() {
   const supabase = createAdminClient();
 
-  const { data, error } = await supabase
+  const { data: actRijen, error } = await supabase
     .from("bdzbookings_acts")
     .select("id, slug, name, type, genres, tarief_type, tarief_bedrag, contact_naam, contact_rol, contact_email, contact_telefoon")
     .order("name");
 
-  if (error || !data) {
+  if (error || !actRijen) {
     console.error("Ophalen acts mislukt:", error?.message);
     return <BDZBookingsDashboard />;
   }
 
-  const acts = data.map((rij, index) => ({
-    id: index + 1,
-    dbId: rij.id,
-    slug: rij.slug,
-    name: rij.name,
-    type: rij.type as "dj" | "artiest" | "band",
-    genres: rij.genres ?? [],
-    tarief: formatTarief(Number(rij.tarief_bedrag), rij.tarief_type),
-    contact: {
-      naam: rij.contact_naam ?? "",
-      rol: rij.contact_rol ?? "",
-      email: rij.contact_email ?? "",
-      telefoon: rij.contact_telefoon ?? "",
-    },
-  }));
+  const uuidNaarNummer = new Map<string, number>();
+  const acts = actRijen.map((rij, index) => {
+    uuidNaarNummer.set(rij.id, index + 1);
+    return {
+      id: index + 1,
+      slug: rij.slug,
+      name: rij.name,
+      type: rij.type as "dj" | "artiest" | "band",
+      genres: rij.genres ?? [],
+      tarief: formatTarief(Number(rij.tarief_bedrag), rij.tarief_type),
+      contact: {
+        naam: rij.contact_naam ?? "",
+        rol: rij.contact_rol ?? "",
+        email: rij.contact_email ?? "",
+        telefoon: rij.contact_telefoon ?? "",
+      },
+    };
+  });
 
-  return <BDZBookingsDashboard acts={acts} />;
+  const { data: boekingRijen } = await supabase
+    .from("bdzbookings_bookings")
+    .select("id, act_id, datum, start_tijd, eind_tijd, locatie")
+    .order("datum");
+
+  const events = (boekingRijen ?? [])
+    .filter((b) => uuidNaarNummer.has(b.act_id))
+    .map((b, index) => ({
+      id: index + 1,
+      actId: uuidNaarNummer.get(b.act_id)!,
+      dag: b.datum,
+      start: String(b.start_tijd).slice(0, 5),
+      eind: String(b.eind_tijd).slice(0, 5),
+      locatie: b.locatie,
+    }));
+
+  return <BDZBookingsDashboard acts={acts} events={events} />;
 }
