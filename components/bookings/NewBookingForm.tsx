@@ -84,15 +84,16 @@ function formatEuro(n: number): string {
 type ConflictLevel = "none" | "buffer" | "overlap";
 
 function checkConflict(
-  actId: number,
+  actId: any,
   date: string,
   start: string,
-  end: string
+  end: string,
+  bestaande: ExistingBooking[]
 ): { level: ConflictLevel; against?: ExistingBooking } {
   const startMin = toMinutes(start);
   const endMin = toMinutes(end);
 
-  for (const b of EXISTING_BOOKINGS) {
+  for (const b of bestaande) {
     if (b.actId !== actId || b.date !== date) continue;
     const bStart = toMinutes(b.start);
     const bEnd = toMinutes(b.end);
@@ -188,7 +189,7 @@ function ActPicker({
   );
 }
 
-export default function NewBookingForm({ acts = MOCK_ACTS }: { acts?: Act[] }) {
+export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = EXISTING_BOOKINGS }: { acts?: Act[]; bestaandeBoekingen?: ExistingBooking[] }) {
   const [actId, setActId] = useState<any>(acts[0].id);
   const [date, setDate] = useState("");
   const [start, setStart] = useState("21:00");
@@ -218,8 +219,8 @@ export default function NewBookingForm({ acts = MOCK_ACTS }: { acts?: Act[] }) {
 
   const conflict = useMemo(() => {
     if (!date || !start || !end) return { level: "none" as ConflictLevel };
-    return checkConflict(actId, date, start, end);
-  }, [actId, date, start, end]);
+    return checkConflict(actId, date, start, end, bestaandeBoekingen);
+  }, [actId, date, start, end, bestaandeBoekingen]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

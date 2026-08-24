@@ -5,12 +5,13 @@ export const dynamic = "force-dynamic";
 
 export default async function NewBookingPage() {
   const supabase = createAdminClient();
-  const { data } = await supabase
+
+  const { data: actRijen } = await supabase
     .from("bdzbookings_acts")
     .select("id, name, type, tarief_type, tarief_bedrag, standaard_commissie, tiers")
     .order("name");
 
-  const acts = (data ?? []).map((r) => ({
+  const acts = (actRijen ?? []).map((r) => ({
     id: r.id,
     name: r.name,
     type: r.type as "dj" | "artiest" | "band",
@@ -20,9 +21,23 @@ export default async function NewBookingPage() {
     tiers: (r.tiers as any) ?? [],
   }));
 
+  const { data: boekingRijen } = await supabase
+    .from("bdzbookings_bookings")
+    .select("id, act_id, datum, start_tijd, eind_tijd, locatie")
+    .order("datum");
+
+  const bestaandeBoekingen = (boekingRijen ?? []).map((b) => ({
+    id: b.id as any,
+    actId: b.act_id as any,
+    date: b.datum,
+    start: String(b.start_tijd).slice(0, 5),
+    end: String(b.eind_tijd).slice(0, 5),
+    locatie: b.locatie,
+  }));
+
   return (
     <div className="min-h-screen bg-neutral-50 px-6 py-10">
-      <NewBookingForm acts={acts} />
+      <NewBookingForm acts={acts} bestaandeBoekingen={bestaandeBoekingen} />
     </div>
   );
 }
