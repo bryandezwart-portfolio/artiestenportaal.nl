@@ -25,6 +25,8 @@ interface Act {
 
 interface BookingEvent {
   id: number;
+  boekingId?: string;
+  status?: string;
   actId: number;
   dag: string;
   start: string;
@@ -210,7 +212,22 @@ function AgendaRow({ event, act, delay }: { event: BookingEvent; act: Act; delay
               </span>
             )}
           </div>
-          <p className="text-[13px] text-neutral-500">{event.locatie}</p>
+          <p className="text-[13px] text-neutral-500">
+            {event.locatie}
+            {event.status === "geannuleerd" && (
+              <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">
+                geannuleerd
+              </span>
+            )}
+            {event.boekingId && (
+              <Link
+                href={`/bookings/boeking/${event.boekingId}`}
+                className="ml-2 text-[12px] text-neutral-400 underline decoration-neutral-300 underline-offset-2 hover:text-neutral-700"
+              >
+                bewerken
+              </Link>
+            )}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-[13px] font-medium text-neutral-900">

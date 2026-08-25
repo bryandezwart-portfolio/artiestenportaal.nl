@@ -42,13 +42,15 @@ export default async function BookingsPage() {
 
   const { data: boekingRijen } = await supabase
     .from("bdzbookings_bookings")
-    .select("id, act_id, datum, start_tijd, eind_tijd, locatie")
+    .select("id, act_id, datum, start_tijd, eind_tijd, locatie, status")
     .order("datum");
 
   const events = (boekingRijen ?? [])
     .filter((b) => uuidNaarNummer.has(b.act_id))
     .map((b, index) => ({
       id: index + 1,
+      boekingId: b.id,
+      status: b.status,
       actId: uuidNaarNummer.get(b.act_id)!,
       dag: b.datum,
       start: String(b.start_tijd).slice(0, 5),
