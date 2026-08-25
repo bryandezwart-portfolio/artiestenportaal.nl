@@ -283,12 +283,20 @@ function Agenda({ acts, events }: { acts: Act[]; events: BookingEvent[] }) {
 }
 
 function AankomendeActsSidebar({ acts, events }: { acts: Act[]; events: BookingEvent[] }) {
+  const vandaag = new Date().toISOString().slice(0, 10);
+  const aankomend = events
+    .filter((e) => e.status !== "geannuleerd" && e.dag >= vandaag)
+    .sort((a, b) => (a.dag + a.start).localeCompare(b.dag + b.start));
+
   return (
     <aside className="animate-fade-in w-full shrink-0 lg:w-72">
       <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm lg:sticky lg:top-10">
         <p className="mb-3 text-[13px] font-semibold text-neutral-900">Aankomende acts</p>
         <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
-          {events.map((e, i) => {
+          {aankomend.length === 0 && (
+            <p className="py-2 text-[12px] text-neutral-400">Geen aankomende boekingen.</p>
+          )}
+          {aankomend.map((e, i) => {
             const act = acts.find((a) => a.id === e.actId);
             if (!act) return null;
             const s = TYPE_STYLES[act.type];
