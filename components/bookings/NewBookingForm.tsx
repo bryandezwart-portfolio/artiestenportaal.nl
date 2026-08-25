@@ -64,11 +64,37 @@ function toMinutes(time: string) {
   return h * 60 + m;
 }
 
+// 23:59 is in de praktijk een code voor "middernacht" op de voorgaande dag.
+// Voor de duurberekening lezen we die tijd daarom als 00:00, zodat een boeking
+// van 23:59 tot 02:00 gewoon 2 uur is en niet 2,017 uur.
+function normaliseerStart(start: string): string {
+  return start === "23:59" ? "00:00" : start;
+}
+
 function durationHours(start: string, end: string): number {
-  let startMin = toMinutes(start);
+  let startMin = toMinutes(normaliseerStart(start));
   let endMin = toMinutes(end);
   if (endMin <= startMin) endMin += 24 * 60;
   return (endMin - startMin) / 60;
+}
+
+function loopOverMiddernacht(start: string, end: string): boolean {
+  return toMinutes(end) <= toMinutes(start);
+}
+
+function volgendeDag(datum: string): string {
+  const d = new Date(datum + "T12:00:00");
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function langeDag(datum: string): string {
+  if (!datum) return "";
+  return new Intl.DateTimeFormat("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(datum + "T12:00:00"));
 }
 
 function parseEuro(value: string): number | null {
@@ -202,6 +228,8 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
 
   const selectedAct = acts.find((a) => a.id === actId)!;
   const uren = useMemo(() => (start && end ? durationHours(start, end) : 0), [start, end]);
+  const overMiddernacht = start && end ? loopOverMiddernacht(start, end) : false;
+  const eindDatum = date ? (overMiddernacht ? volgendeDag(date) : date) : "";
   const bezoekers = parseInt(bezoekersInput || "0", 10) || 0;
   const toeslag = applicableToeslag(selectedAct.tiers, bezoekers);
 
@@ -240,6 +268,7 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
       body: JSON.stringify({
         act_id: actId,
         datum: date,
+        eind_datum: eindDatum,
         start_tijd: start,
         eind_tijd: end,
         locatie: locatie.trim(),
@@ -321,6 +350,19 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
                 className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
               />
             </div>
+            {date && start && end && (
+              <div className="col-span-3 rounded-xl bg-neutral-50 px-3 py-2">
+                <p className="text-[13px] text-neutral-700">
+                  {langeDag(date)} {start} &rarr; {langeDag(eindDatum)} {end}
+                  <span className="text-neutral-400"> &middot; {uren.toLocaleString("nl-NL")} uur</span>
+                </p>
+                {overMiddernacht && (
+                  <p className="mt-0.5 text-[12px] text-amber-700">
+                    Deze boeking loopt door na middernacht &mdash; de eindtijd valt op de volgende dag.
+                  </p>
+                )}
+              </div>
+            )}
             <div className="col-span-1 flex items-end">
               <p className="text-[11px] text-neutral-400">30 min mogelijk</p>
             </div>

@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     const nieuweBoeking = {
       act_id: b.act_id,
       datum: b.datum,
+      eind_datum: b.eind_datum || b.datum,
       start_tijd: b.start_tijd,
       eind_tijd: b.eind_tijd,
       locatie: b.locatie,
