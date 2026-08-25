@@ -225,6 +225,7 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
   const [commissieInput, setCommissieInput] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [bezig, setBezig] = useState(false);
+  const [opgeslagen, setOpgeslagen] = useState<any>(null);
   const [error, setError] = useState("");
 
   const selectedAct = acts.find((a) => a.id === actId)!;
@@ -285,9 +286,12 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
 
     if (!res.ok) {
       setBezig(false);
-      setError("Opslaan is niet gelukt. Probeer het nog eens.");
+      const fout = await res.json().catch(() => null);
+      setError(fout?.error || "Opslaan is niet gelukt. Probeer het nog eens.");
       return;
     }
+    const antwoord = await res.json().catch(() => null);
+    setOpgeslagen(antwoord?.boeking ?? null);
     setSubmitted(true);
   }
 
@@ -298,10 +302,62 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
         style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif' }}
       >
         <p className="text-[15px] font-semibold text-neutral-900">Boeking aangemaakt</p>
-        <p className="mt-1 text-[13px] text-neutral-500">
-          Status: telefonisch bevestigd. De factuur aan de opdrachtgever toont alleen de gage — jouw commissie staat
-          daar nooit op.
+
+        {opgeslagen && (
+          <div className="mt-4 space-y-1.5 rounded-xl bg-neutral-50 p-4 text-left">
+            <div className="flex justify-between text-[13px]">
+              <span className="text-neutral-500">Act</span>
+              <span className="font-medium text-neutral-900">{selectedAct.name}</span>
+            </div>
+            <div className="flex justify-between text-[13px]">
+              <span className="text-neutral-500">Wanneer</span>
+              <span className="font-medium text-neutral-900">
+                {langeDag(opgeslagen.datum)} {String(opgeslagen.start_tijd).slice(0, 5)} &ndash;{" "}
+                {String(opgeslagen.eind_tijd).slice(0, 5)}
+              </span>
+            </div>
+            {opgeslagen.eind_datum !== opgeslagen.datum && (
+              <div className="flex justify-between text-[12px]">
+                <span className="text-neutral-400">Eindigt op</span>
+                <span className="text-neutral-500">{langeDag(opgeslagen.eind_datum)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-[13px]">
+              <span className="text-neutral-500">Locatie</span>
+              <span className="font-medium text-neutral-900">{opgeslagen.locatie}</span>
+            </div>
+            <div className="flex justify-between border-t border-neutral-200 pt-1.5 text-[13px]">
+              <span className="text-neutral-500">Gage op factuur</span>
+              <span className="font-medium text-neutral-900">
+                {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(
+                  Number(opgeslagen.gage)
+                )}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <p className="mt-3 text-[12px] text-neutral-400">
+          Status: telefonisch bevestigd. De factuur aan de opdrachtgever toont alleen de gage &mdash; jouw commissie
+          staat daar nooit op.
         </p>
+
+        <div className="mt-5 flex gap-2">
+          <a
+            href="/bookings"
+            className="flex-1 rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800"
+          >
+            Naar de agenda
+          </a>
+          {opgeslagen?.id && (
+            
+            <a
+              className="flex-1 rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
+            >
+              Boeking bewerken
+            </a>
+          )}
+        </div>
       </div>
     );
   }

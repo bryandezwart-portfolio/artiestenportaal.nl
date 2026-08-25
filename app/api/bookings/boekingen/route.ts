@@ -29,6 +29,27 @@ export async function POST(request: Request) {
     };
 
     const supabase = createAdminClient();
+
+    // Exacte duplicaten weigeren: zelfde act, datum en tijden is altijd een vergissing.
+    // Deze controle kijkt in de database, niet in de gegevens die het formulier bij het
+    // laden meekreeg - anders glipt een net aangemaakte boeking er alsnog doorheen.
+    const { data: bestaande } = await supabase
+      .from("bdzbookings_bookings")
+      .select("id")
+      .eq("act_id", nieuweBoeking.act_id)
+      .eq("datum", nieuweBoeking.datum)
+      .eq("start_tijd", String(nieuweBoeking.start_tijd).slice(0, 5) + ":00")
+      .eq("eind_tijd", String(nieuweBoeking.eind_tijd).slice(0, 5) + ":00")
+      .neq("status", "geannuleerd")
+      .limit(1);
+
+    if (bestaande && bestaande.length > 0) {
+      return NextResponse.json(
+        { error: "Deze act staat al ingepland op deze datum en tijd." },
+        { status: 409 }
+      );
+    }
+
     const { data, error } = await supabase
       .from("bdzbookings_bookings")
       .insert(nieuweBoeking)
