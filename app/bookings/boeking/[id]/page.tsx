@@ -9,7 +9,7 @@ export default async function BoekingPage({ params }: { params: { id: string } }
 
   const { data, error } = await supabase
     .from("bdzbookings_bookings")
-    .select("*, bdzbookings_acts(name)")
+    .select("*, bdzbookings_acts(name, tarief_type, tarief_bedrag, standaard_commissie)")
     .eq("id", params.id)
     .single();
 
@@ -21,6 +21,8 @@ export default async function BoekingPage({ params }: { params: { id: string } }
   const boeking = {
     ...data,
     act_naam: (data as any).bdzbookings_acts?.name ?? "Onbekende act",
+    act_tarief_type: (data as any).bdzbookings_acts?.tarief_type ?? "vast",
+    act_tarief_bedrag: Number((data as any).bdzbookings_acts?.tarief_bedrag ?? 0),
   };
 
   return (

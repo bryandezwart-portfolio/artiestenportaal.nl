@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef, useState, useEffect } from "react";
+import ExtraPosten, { ExtraPost, totaalVoor } from "@/components/bookings/ExtraPosten";
 
 type ActType = "dj" | "artiest" | "band";
 type TariefType = "vast" | "uur";
@@ -222,6 +223,10 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
   const [end, setEnd] = useState("23:00");
   const [locatie, setLocatie] = useState("");
   const [bezoekersInput, setBezoekersInput] = useState("");
+  const [speelschema, setSpeelschema] = useState("");
+  const [gelegenheid, setGelegenheid] = useState("openbaar");
+  const [opmerkingen, setOpmerkingen] = useState("");
+  const [extraPosten, setExtraPosten] = useState<ExtraPost[]>([]);
   const [commissieInput, setCommissieInput] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [bezig, setBezig] = useState(false);
@@ -243,7 +248,14 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
   const basisTariefMetToeslag = basisTarief + (toeslag?.toeslag || 0);
 
   const commissieValue = commissieInput !== null ? parseEuro(commissieInput) : selectedAct.standaardCommissie;
-  const gage = commissieValue !== null ? basisTariefMetToeslag + commissieValue : null;
+  const extraVoorAct = totaalVoor(extraPosten, "act");
+  const extraVoorMij = totaalVoor(extraPosten, "mij");
+  // basistarief dat wordt opgeslagen bevat de extra posten voor de act al,
+  // dus die hier niet nog een keer optellen
+  // Het basistarief dat we opslaan bevat de posten voor de act al.
+  // De gage bouwt daarop voort: basistarief + commissie + posten voor jou.
+  const basistariefOpslaan = basisTariefMetToeslag + extraVoorAct;
+  const gage = commissieValue !== null ? basistariefOpslaan + commissieValue + extraVoorMij : null;
   const commissiePct =
     commissieValue !== null && basisTariefMetToeslag > 0 ? (commissieValue / basisTariefMetToeslag) * 100 : null;
 
@@ -276,6 +288,11 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
         start_tijd: start,
         eind_tijd: end,
         locatie: locatie.trim(),
+        speelschema: speelschema.trim() || null,
+        gelegenheid,
+        opmerkingen: opmerkingen.trim() || null,
+        extra_posten: extraPosten.filter((p) => p.omschrijving.trim() || p.bedrag),
+        basistarief: basistariefOpslaan,
         bezoekers: bezoekers || null,
         basistarief: basisTarief,
         toeslag: toeslag?.toeslag || 0,
@@ -350,8 +367,8 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
             Naar de agenda
           </a>
           {opgeslagen?.id && (
-            
             <a
+              href={`/bookings/boeking/${opgeslagen.id}`}
               className="flex-1 rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
             >
               Boeking bewerken
@@ -440,6 +457,45 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
               />
             </div>
           )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-[13px] font-medium text-neutral-700">Speelschema</label>
+              <input
+                type="text"
+                value={speelschema}
+                onChange={(e) => setSpeelschema(e.target.value)}
+                placeholder="Bijv. 3 x 45 min"
+                className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[13px] font-medium text-neutral-700">Gelegenheid</label>
+              <select
+                value={gelegenheid}
+                onChange={(e) => setGelegenheid(e.target.value)}
+                className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+              >
+                <option value="openbaar">Openbaar</option>
+                <option value="besloten">Besloten</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[13px] font-medium text-neutral-700">
+              Opmerkingen voor de act
+            </label>
+            <textarea
+              rows={3}
+              value={opmerkingen}
+              onChange={(e) => setOpmerkingen(e.target.value)}
+              placeholder="Bijv. genre techno, extra microfoon i.v.m. presentator, rookmachine meenemen"
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+            />
+          </div>
+
+          <ExtraPosten posten={extraPosten} onChange={setExtraPosten} />
 
           <div>
             <label className="mb-1.5 block text-[13px] font-medium text-neutral-700">Locatie</label>

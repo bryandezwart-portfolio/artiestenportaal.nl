@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import ExtraPosten, { ExtraPost, totaalVoor } from "@/components/bookings/ExtraPosten";
 
 const STATUSSEN = [
   "optie",
@@ -50,7 +51,35 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
     soundcheck_notitie: boeking.soundcheck_notitie || "",
   });
   const [bezig, setBezig] = useState(false);
+  const [bedragen, setBedragen] = useState({
+    basistarief: Number(boeking.basistarief),
+    commissie: Number(boeking.commissie),
+    gage: Number(boeking.gage),
+  });
+
+  function naarMinuten(t: string) {
+    const [u, m] = t.split(":").map(Number);
+    return u * 60 + (m || 0);
+  }
+
+  // 23:59 geldt als middernacht, net als in het boekingsformulier
+  const startMin = naarMinuten(draft.start_tijd === "23:59" ? "00:00" : draft.start_tijd);
+  let eindMin = naarMinuten(draft.eind_tijd);
+  if (eindMin <= startMin) eindMin += 24 * 60;
+  const uren = (eindMin - startMin) / 60;
+
+  const nieuwBasistarief =
+    boeking.act_tarief_type === "uur"
+      ? boeking.act_tarief_bedrag * uren
+      : boeking.act_tarief_bedrag;
+  const nieuweGage = nieuwBasistarief + Number(boeking.toeslag) + bedragen.commissie;
+  const tijdenGewijzigd =
+    draft.start_tijd !== boeking.start_tijd.slice(0, 5) || draft.eind_tijd !== boeking.eind_tijd.slice(0, 5);
+  const bedragWijktAf = Math.round(nieuwBasistarief) !== Math.round(bedragen.basistarief);
   const [melding, setMelding] = useState("");
+  const [posten, setPosten] = useState<ExtraPost[]>(
+    Array.isArray((boeking as any).extra_posten) ? ((boeking as any).extra_posten as ExtraPost[]) : []
+  );
 
   async function opslaan(extra: Partial<typeof draft> = {}) {
     setBezig(true);
@@ -58,7 +87,14 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
     const res = await fetch(`/api/bookings/boekingen/${boeking.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...draft, ...extra }),
+      body: JSON.stringify({
+        ...draft,
+        extra_posten: posten.filter((p) => p.omschrijving.trim() || p.bedrag),
+        basistarief: bedragen.basistarief,
+        commissie: bedragen.commissie,
+        gage: bedragen.gage,
+        ...extra,
+      }),
     });
     setBezig(false);
     if (res.ok) {
@@ -147,7 +183,7 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
             >
               {STATUSSEN.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
                 </option>
               ))}
             </select>
@@ -163,24 +199,63 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
           </div>
         </div>
 
+        {tijdenGewijzigd && bedragWijktAf && (
+          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="text-[13px] text-amber-900">
+              Tijden gewijzigd: {uren.toLocaleString("nl-NL")} uur
+              {boeking.act_tarief_type === "uur" && ` \u00d7 ${euro(boeking.act_tarief_bedrag)}`} ={" "}
+              {euro(nieuwBasistarief)} basistarief. Nieuwe gage: {euro(nieuweGage)}.
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                setBedragen({
+                  basistarief: nieuwBasistarief,
+                  commissie: bedragen.commissie,
+                  gage: nieuweGage,
+                })
+              }
+              className="mt-2 rounded-lg bg-amber-900 px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-amber-800"
+            >
+              Bedragen bijwerken
+            </button>
+          </div>
+        )}
+
+        <div className="mt-5">
+          <ExtraPosten posten={posten} onChange={setPosten} />
+        </div>
+
         <div className="mt-5 rounded-xl bg-neutral-50 p-4">
           <p className="text-[12px] font-medium uppercase tracking-wide text-neutral-400">Alleen zichtbaar voor jou</p>
           <div className="mt-2 space-y-1 text-[13px]">
             <div className="flex justify-between">
               <span className="text-neutral-500">Basistarief</span>
-              <span className="text-neutral-900">{euro(Number(boeking.basistarief))}</span>
+              <span className="text-neutral-900">{euro(bedragen.basistarief)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-500">Toeslag</span>
               <span className="text-neutral-900">{euro(Number(boeking.toeslag))}</span>
             </div>
+            {totaalVoor(posten, "act") > 0 && (
+              <div className="flex justify-between">
+                <span className="text-neutral-500">Extra posten (act)</span>
+                <span className="text-neutral-900">{euro(totaalVoor(posten, "act"))}</span>
+              </div>
+            )}
+            {totaalVoor(posten, "mij") > 0 && (
+              <div className="flex justify-between">
+                <span className="text-neutral-500">Extra posten (jij)</span>
+                <span className="text-neutral-900">{euro(totaalVoor(posten, "mij"))}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-neutral-500">Jouw commissie</span>
-              <span className="text-neutral-900">{euro(Number(boeking.commissie))}</span>
+              <span className="text-neutral-900">{euro(bedragen.commissie)}</span>
             </div>
             <div className="flex justify-between border-t border-neutral-200 pt-1 font-medium">
               <span className="text-neutral-700">Gage op factuur</span>
-              <span className="text-neutral-900">{euro(Number(boeking.gage))}</span>
+              <span className="text-neutral-900">{euro(bedragen.gage)}</span>
             </div>
           </div>
         </div>

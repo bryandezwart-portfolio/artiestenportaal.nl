@@ -15,6 +15,10 @@ const TOEGESTAAN = [
   "gage",
   "status",
   "soundcheck_notitie",
+  "extra_posten",
+  "speelschema",
+  "gelegenheid",
+  "opmerkingen",
 ];
 
 export async function PATCH(
