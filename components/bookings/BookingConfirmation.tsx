@@ -2,36 +2,91 @@
 
 import React, { useState } from "react";
 
-interface BookingDetails {
-  actName: string;
-  date: string;
-  start: string;
-  end: string;
+export interface BevestigBoeking {
+  id: string;
+  act_naam: string;
+  datum: string;
+  eind_datum: string;
+  start_tijd: string;
+  eind_tijd: string;
   locatie: string;
-  gage: string;
+  speelschema: string | null;
+  bezoekers: number | null;
+  posten_act: { omschrijving: string; bedrag: number }[];
+  gelegenheid: string | null;
+  opmerkingen: string | null;
+  soundcheck_notitie: string | null;
+  act_bedrag: number;
+  bevestigd_door_act: boolean;
+  bevestigd_op: string | null;
+  gemeld_klopt_niet: boolean;
 }
 
-const MOCK_BOOKING: BookingDetails = {
-  actName: "DJ Lumo",
-  date: "Vrijdag 28 augustus 2026",
-  start: "22:00",
-  end: "02:00",
-  locatie: "Club Vault, Arnhem",
-  gage: "€ 450",
-};
+function euro(n: number) {
+  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(n);
+}
 
-export default function BookingConfirmation() {
-  const [confirmed, setConfirmed] = useState(false);
-  const [confirmedAt, setConfirmedAt] = useState<string | null>(null);
+function langeDatum(d: string) {
+  return new Intl.DateTimeFormat("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(d + "T12:00:00"));
+}
+
+function tijd(t: string) {
+  return String(t).slice(0, 5);
+}
+
+function Regel({ label, waarde }: { label: string; waarde: string }) {
+  return (
+    <div className="flex justify-between gap-4 text-[13px]">
+      <span className="shrink-0 text-neutral-500">{label}</span>
+      <span className="text-right font-medium text-neutral-900">{waarde}</span>
+    </div>
+  );
+}
+
+export default function BookingConfirmation({ boeking }: { boeking: BevestigBoeking }) {
+  const [confirmed, setConfirmed] = useState(boeking.bevestigd_door_act);
+  const [confirmedAt, setConfirmedAt] = useState<string | null>(
+    boeking.bevestigd_op
+      ? new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(
+          new Date(boeking.bevestigd_op)
+        )
+      : null
+  );
   const [showIssue, setShowIssue] = useState(false);
-  const [issueSent, setIssueSent] = useState(false);
+  const [issueSent, setIssueSent] = useState(boeking.gemeld_klopt_niet);
+  const [bezig, setBezig] = useState(false);
+  const [fout, setFout] = useState("");
 
-  function handleConfirm() {
-    setConfirmed(true);
-    setConfirmedAt(
-      new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date())
-    );
+  async function stuur(kloptNiet: boolean) {
+    if (bezig) return;
+    setBezig(true);
+    setFout("");
+    const res = await fetch(`/api/bookings/bevestig/${boeking.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ klopt_niet: kloptNiet }),
+    });
+    setBezig(false);
+    if (!res.ok) {
+      setFout("Er ging iets mis. Probeer het nog eens of bel Bryan even.");
+      return;
+    }
+    if (kloptNiet) {
+      setIssueSent(true);
+    } else {
+      setConfirmed(true);
+      setConfirmedAt(
+        new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date())
+      );
+    }
   }
+
+  const overMiddernacht = boeking.eind_datum !== boeking.datum;
 
   return (
     <div
@@ -41,29 +96,57 @@ export default function BookingConfirmation() {
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
         <p className="text-[13px] font-medium text-neutral-400">BDZBookings</p>
         <h1 className="mt-1 text-xl font-semibold tracking-tight text-neutral-900">
-          Bevestiging voor {MOCK_BOOKING.actName}
+          Bevestiging voor {boeking.act_naam}
         </h1>
 
         <div className="mt-5 space-y-2 rounded-xl bg-neutral-50 p-4">
-          <div className="flex justify-between text-[13px]">
-            <span className="text-neutral-500">Datum</span>
-            <span className="font-medium text-neutral-900">{MOCK_BOOKING.date}</span>
-          </div>
-          <div className="flex justify-between text-[13px]">
-            <span className="text-neutral-500">Tijd</span>
-            <span className="font-medium text-neutral-900">
-              {MOCK_BOOKING.start} – {MOCK_BOOKING.end}
-            </span>
-          </div>
-          <div className="flex justify-between text-[13px]">
-            <span className="text-neutral-500">Locatie</span>
-            <span className="font-medium text-neutral-900">{MOCK_BOOKING.locatie}</span>
-          </div>
-          <div className="flex justify-between text-[13px]">
-            <span className="text-neutral-500">Gage</span>
-            <span className="font-medium text-neutral-900">{MOCK_BOOKING.gage}</span>
+          <Regel label="Datum" waarde={langeDatum(boeking.datum)} />
+          <Regel
+            label="Tijd"
+            waarde={`${tijd(boeking.start_tijd)} – ${tijd(boeking.eind_tijd)}${
+              overMiddernacht ? ` (${langeDatum(boeking.eind_datum).split(" ")[0]})` : ""
+            }`}
+          />
+          <Regel label="Locatie" waarde={boeking.locatie} />
+          {boeking.speelschema && <Regel label="Speelschema" waarde={boeking.speelschema} />}
+          {boeking.gelegenheid && (
+            <Regel
+              label="Gelegenheid"
+              waarde={boeking.gelegenheid.charAt(0).toUpperCase() + boeking.gelegenheid.slice(1)}
+            />
+          )}
+          {boeking.bezoekers ? (
+            <Regel label="Verwacht publiek" waarde={`ca. ${boeking.bezoekers} personen`} />
+          ) : null}
+
+          {boeking.posten_act.length > 0 && (
+            <div className="border-t border-neutral-200 pt-2">
+              {boeking.posten_act.map((p, i) => (
+                <Regel key={i} label={p.omschrijving || "Extra post"} waarde={euro(Number(p.bedrag))} />
+              ))}
+            </div>
+          )}
+
+          <div className="border-t border-neutral-200 pt-2">
+            <Regel label="Totaal voor jou" waarde={euro(boeking.act_bedrag)} />
           </div>
         </div>
+
+        {(boeking.opmerkingen || boeking.soundcheck_notitie) && (
+          <div className="mt-3 rounded-xl border border-neutral-200 p-4">
+            <p className="text-[12px] font-medium uppercase tracking-wide text-neutral-400">Voor deze avond</p>
+            {boeking.opmerkingen && (
+              <p className="mt-1.5 whitespace-pre-line text-[13px] text-neutral-700">{boeking.opmerkingen}</p>
+            )}
+            {boeking.soundcheck_notitie && (
+              <p className="mt-1.5 whitespace-pre-line text-[13px] text-neutral-700">
+                {boeking.soundcheck_notitie}
+              </p>
+            )}
+          </div>
+        )}
+
+        {fout && <p className="mt-4 text-[13px] text-red-600">{fout}</p>}
 
         {!confirmed ? (
           <>
@@ -71,14 +154,17 @@ export default function BookingConfirmation() {
               Zoals telefonisch afgestemd — bevestig hieronder voor de administratie.
             </p>
             <button
-              onClick={handleConfirm}
-              className="mt-4 w-full rounded-xl bg-neutral-900 px-4 py-2.5 text-[14px] font-medium text-white transition hover:bg-neutral-800"
+              type="button"
+              disabled={bezig}
+              onClick={() => stuur(false)}
+              className="mt-4 w-full rounded-xl bg-neutral-900 px-4 py-2.5 text-[14px] font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50"
             >
-              Bevestigen
+              {bezig ? "Bezig..." : "Bevestigen"}
             </button>
 
             {!showIssue ? (
               <button
+                type="button"
                 onClick={() => setShowIssue(true)}
                 className="mt-3 w-full text-center text-[13px] text-neutral-400 underline decoration-neutral-300 underline-offset-2 hover:text-neutral-600"
               >
@@ -91,8 +177,10 @@ export default function BookingConfirmation() {
                   afwijzing.
                 </p>
                 <button
-                  onClick={() => setIssueSent(true)}
-                  className="mt-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-[13px] font-medium text-neutral-700 hover:bg-neutral-50"
+                  type="button"
+                  disabled={bezig}
+                  onClick={() => stuur(true)}
+                  className="mt-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
                 >
                   Laat weten dat er iets niet klopt
                 </button>
@@ -104,7 +192,7 @@ export default function BookingConfirmation() {
         ) : (
           <div className="mt-5 rounded-xl bg-emerald-50 px-4 py-3 text-center">
             <p className="text-[14px] font-medium text-emerald-800">Bevestigd</p>
-            <p className="mt-0.5 text-[12px] text-emerald-700">Bevestigd op {confirmedAt}</p>
+            {confirmedAt && <p className="mt-0.5 text-[12px] text-emerald-700">Bevestigd op {confirmedAt}</p>}
           </div>
         )}
       </div>
