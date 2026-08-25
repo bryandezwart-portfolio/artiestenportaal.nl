@@ -77,6 +77,8 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
     draft.start_tijd !== boeking.start_tijd.slice(0, 5) || draft.eind_tijd !== boeking.eind_tijd.slice(0, 5);
   const bedragWijktAf = Math.round(nieuwBasistarief) !== Math.round(bedragen.basistarief);
   const [melding, setMelding] = useState("");
+  const [mailBezig, setMailBezig] = useState(false);
+  const [mailMelding, setMailMelding] = useState("");
   const [posten, setPosten] = useState<ExtraPost[]>(
     Array.isArray((boeking as any).extra_posten) ? ((boeking as any).extra_posten as ExtraPost[]) : []
   );
@@ -105,6 +107,20 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
   }
 
   const geannuleerd = boeking.status === "geannuleerd";
+
+  async function stuurUitnodiging() {
+    if (mailBezig) return;
+    setMailBezig(true);
+    setMailMelding("");
+    const res = await fetch(`/api/bookings/uitnodiging/${boeking.id}`, { method: "POST" });
+    const antwoord = await res.json().catch(() => null);
+    setMailBezig(false);
+    if (res.ok) {
+      setMailMelding(`Uitnodiging verstuurd naar ${antwoord?.naar ?? "de act"}.`);
+    } else {
+      setMailMelding(antwoord?.error || "Versturen is niet gelukt.");
+    }
+  }
 
   return (
     <div
@@ -262,7 +278,21 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
 
         {melding && <p className="mt-4 text-[13px] text-red-600">{melding}</p>}
 
-        <div className="mt-6 flex gap-2">
+        {mailMelding && (
+          <p className="mt-4 rounded-xl bg-neutral-50 px-4 py-2.5 text-[13px] text-neutral-700">{mailMelding}</p>
+        )}
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          {!geannuleerd && (
+            <button
+              type="button"
+              disabled={mailBezig}
+              onClick={stuurUitnodiging}
+              className="rounded-xl border border-neutral-900 px-4 py-2 text-[13px] font-medium text-neutral-900 transition hover:bg-neutral-50 disabled:opacity-50"
+            >
+              {mailBezig ? "Versturen..." : "Uitnodiging mailen"}
+            </button>
+          )}
           <button
             type="button"
             disabled={bezig}
