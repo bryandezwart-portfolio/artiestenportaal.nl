@@ -12,6 +12,7 @@ export interface BevestigBoeking {
   locatie: string;
   speelschema: string | null;
   bezoekers: number | null;
+  bezetting: string;
   posten_act: { omschrijving: string; bedrag: number }[];
   gelegenheid: string | null;
   opmerkingen: string | null;
@@ -115,6 +116,7 @@ export default function BookingConfirmation({ boeking }: { boeking: BevestigBoek
               waarde={boeking.gelegenheid.charAt(0).toUpperCase() + boeking.gelegenheid.slice(1)}
             />
           )}
+          {boeking.bezetting ? <Regel label="Bezetting" waarde={boeking.bezetting} /> : null}
           {boeking.bezoekers ? (
             <Regel label="Verwacht publiek" waarde={`ca. ${boeking.bezoekers} personen`} />
           ) : null}

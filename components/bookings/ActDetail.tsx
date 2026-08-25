@@ -17,6 +17,8 @@ interface Act {
   contact_rol: string | null;
   contact_email: string | null;
   contact_telefoon: string | null;
+  aantal_personen: number | null;
+  bezetting: string | null;
 }
 
 interface Booking {
@@ -78,6 +80,8 @@ export default function ActDetail({
     contact_rol: act.contact_rol || "",
     contact_email: act.contact_email || "",
     contact_telefoon: act.contact_telefoon || "",
+    aantal_personen: act.aantal_personen ?? "",
+    bezetting: act.bezetting || "",
   });
 
   const calendarUrl =
@@ -99,6 +103,8 @@ export default function ActDetail({
       contact_rol: act.contact_rol || "",
       contact_email: act.contact_email || "",
       contact_telefoon: act.contact_telefoon || "",
+    aantal_personen: act.aantal_personen ?? "",
+    bezetting: act.bezetting || "",
     });
     setEditing(true);
   }
@@ -202,6 +208,21 @@ export default function ActDetail({
                     placeholder="Telefoonnummer"
                     className="rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
                   />
+                  <input
+                    type="number"
+                    min={1}
+                    value={draft.aantal_personen}
+                    onChange={(e) => setDraft({ ...draft, aantal_personen: e.target.value })}
+                    placeholder="Aantal personen"
+                    className="rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    value={draft.bezetting}
+                    onChange={(e) => setDraft({ ...draft, bezetting: e.target.value })}
+                    placeholder="Bijv. 4 muzikanten, geluidsman, lichtman"
+                    className="rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                  />
                 </div>
               </div>
 
@@ -252,13 +273,19 @@ export default function ActDetail({
                 </p>
                 <p className="mt-0.5 text-[13px] text-neutral-500">
                   {act.contact_email} · {act.contact_telefoon}
+                  {(act.aantal_personen || act.bezetting) && (
+                    <span className="mt-1 block text-[13px] text-neutral-500">
+                      {act.aantal_personen
+                        ? `${act.aantal_personen} ${act.aantal_personen === 1 ? "persoon" : "personen"}`
+                        : ""}
+                      {act.aantal_personen && act.bezetting ? " — " : ""}
+                      {act.bezetting || ""}
+                    </span>
+                  )}
                 </p>
               </div>
 
               <div className="mt-5 flex gap-2">
-                <button className="rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800">
-                  Magic link versturen
-                </button>
                 <button
                   onClick={startEditing}
                   className="rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"

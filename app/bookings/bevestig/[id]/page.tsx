@@ -9,7 +9,7 @@ export default async function BevestigPage({ params }: { params: { id: string } 
 
   const { data, error } = await supabase
     .from("bdzbookings_bookings")
-    .select("*, bdzbookings_acts(name)")
+    .select("*, bdzbookings_acts(name, aantal_personen, bezetting)")
     .eq("id", params.id)
     .single();
 
@@ -35,6 +35,16 @@ export default async function BevestigPage({ params }: { params: { id: string } 
     locatie: rij.locatie,
     speelschema: rij.speelschema ?? null,
     bezoekers: rij.bezoekers ?? null,
+    bezetting: [
+      rij.bdzbookings_acts?.aantal_personen
+        ? `${rij.bdzbookings_acts.aantal_personen} ${
+            rij.bdzbookings_acts.aantal_personen === 1 ? "persoon" : "personen"
+          }`
+        : "",
+      rij.bdzbookings_acts?.bezetting || "",
+    ]
+      .filter(Boolean)
+      .join(" — "),
     posten_act: Array.isArray(rij.extra_posten)
       ? rij.extra_posten.filter((p: any) => p?.voor === "act")
       : [],

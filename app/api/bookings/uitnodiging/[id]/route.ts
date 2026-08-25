@@ -39,7 +39,7 @@ export async function POST(
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("bdzbookings_bookings")
-      .select("*, bdzbookings_acts(name, contact_naam, contact_email)")
+      .select("*, bdzbookings_acts(name, contact_naam, contact_email, aantal_personen, bezetting)")
       .eq("id", params.id)
       .single();
 
@@ -94,6 +94,21 @@ export async function POST(
         ${b.speelschema ? rij("Speelschema", b.speelschema) : ""}
         ${b.gelegenheid ? rij("Gelegenheid", b.gelegenheid.charAt(0).toUpperCase() + b.gelegenheid.slice(1)) : ""}
         ${b.bezoekers ? rij("Verwacht publiek", `ca. ${b.bezoekers} personen`) : ""}
+        ${
+          act.aantal_personen || act.bezetting
+            ? rij(
+                "Bezetting",
+                [
+                  act.aantal_personen
+                    ? `${act.aantal_personen} ${act.aantal_personen === 1 ? "persoon" : "personen"}`
+                    : "",
+                  act.bezetting || "",
+                ]
+                  .filter(Boolean)
+                  .join(" — ")
+              )
+            : ""
+        }
         ${rij("Gage", euro(Number(b.basistarief) + Number(b.toeslag)))}
         ${postenAct.map((p: any) => rij(p.omschrijving || "Extra post", euro(Number(p.bedrag)))).join("")}
         ${rij("<strong>Totaal voor jou</strong>", `<strong>${euro(totaal)}</strong>`)}

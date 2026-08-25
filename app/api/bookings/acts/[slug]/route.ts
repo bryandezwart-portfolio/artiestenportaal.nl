@@ -17,6 +17,8 @@ export async function PATCH(
       "contact_rol",
       "contact_email",
       "contact_telefoon",
+      "aantal_personen",
+      "bezetting",
     ];
 
     const update: Record<string, unknown> = {};
