@@ -201,7 +201,18 @@ function AgendaRow({ event, act, delay }: { event: BookingEvent; act: Act; delay
       <div className="flex flex-1 items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <p className="text-[14px] font-medium text-neutral-900">{act.name}</p>
+            <p className={`text-[14px] font-medium ${event.status === "geannuleerd" ? "text-neutral-400 line-through" : "text-neutral-900"}`}>
+              {act.name}
+            </p>
+            {event.dag === new Date().toISOString().slice(0, 10) && event.status !== "geannuleerd" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 animate-ping opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                </span>
+                Vandaag
+              </span>
+            )}
             {act.live && (
               <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600">
                 <span className="relative flex h-1.5 w-1.5">
@@ -212,7 +223,7 @@ function AgendaRow({ event, act, delay }: { event: BookingEvent; act: Act; delay
               </span>
             )}
           </div>
-          <p className="text-[13px] text-neutral-500">
+          <p className={`text-[13px] ${event.status === "geannuleerd" ? "text-neutral-400 line-through" : "text-neutral-500"}`}>
             {event.locatie}
             {event.status === "geannuleerd" && (
               <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">

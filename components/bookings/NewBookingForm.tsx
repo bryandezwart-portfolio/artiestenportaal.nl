@@ -224,6 +224,7 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
   const [bezoekersInput, setBezoekersInput] = useState("");
   const [commissieInput, setCommissieInput] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [bezig, setBezig] = useState(false);
   const [error, setError] = useState("");
 
   const selectedAct = acts.find((a) => a.id === actId)!;
@@ -261,6 +262,8 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
       return;
     }
     setError("");
+    if (bezig) return;
+    setBezig(true);
 
     const res = await fetch("/api/bookings/boekingen", {
       method: "POST",
@@ -281,6 +284,7 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
     });
 
     if (!res.ok) {
+      setBezig(false);
       setError("Opslaan is niet gelukt. Probeer het nog eens.");
       return;
     }
@@ -481,9 +485,10 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
 
       <button
         type="submit"
+        disabled={bezig}
         className="mt-6 w-full rounded-xl bg-neutral-900 px-4 py-2.5 text-[14px] font-medium text-white transition hover:bg-neutral-800 lg:w-auto lg:px-8"
       >
-        Boeking aanmaken (telefonisch bevestigd)
+        {bezig ? "Bezig met opslaan..." : "Boeking aanmaken (telefonisch bevestigd)"}
       </button>
       <p className="mt-3 text-[12px] text-neutral-400">
         Zorg dat je de act al gebeld/geappt hebt over beschikbaarheid voordat je dit aanmaakt.
