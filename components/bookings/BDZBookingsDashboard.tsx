@@ -27,6 +27,7 @@ interface BookingEvent {
   id: number;
   boekingId?: string;
   status?: string;
+  bevestigd?: boolean;
   actId: number;
   dag: string;
   start: string;
@@ -225,6 +226,11 @@ function AgendaRow({ event, act, delay }: { event: BookingEvent; act: Act; delay
           </div>
           <p className={`text-[13px] ${event.status === "geannuleerd" ? "text-neutral-400 line-through" : "text-neutral-500"}`}>
             {event.locatie}
+            {event.bevestigd && event.status !== "geannuleerd" && (
+              <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                bevestigd door act
+              </span>
+            )}
             {event.status === "geannuleerd" && (
               <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">
                 geannuleerd
