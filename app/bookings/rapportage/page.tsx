@@ -68,7 +68,7 @@ export default function RapportagePage() {
       className="min-h-screen bg-neutral-50 px-6 py-10 sm:px-10"
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif' }}
     >
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center gap-3">
           
         </div>

@@ -87,7 +87,7 @@ export default function NewActForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto max-w-5xl rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8"
+      className="mx-auto max-w-6xl rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8"
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif' }}
     >
       <div className="mb-6">

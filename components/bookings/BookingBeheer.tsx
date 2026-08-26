@@ -124,7 +124,7 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
 
   return (
     <div
-      className="mx-auto max-w-2xl px-6 py-10"
+      className="mx-auto max-w-6xl px-6 py-10"
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif' }}
     >
       <Link href="/bookings" className="text-[13px] text-neutral-500 hover:text-neutral-800">
