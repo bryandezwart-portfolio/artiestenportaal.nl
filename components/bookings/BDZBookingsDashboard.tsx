@@ -113,14 +113,14 @@ function MotionStyles() {
         to { opacity: 1; transform: translateY(0); }
       }
       .animate-fade-in-up {
-        animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation: fade-in-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
       }
       @keyframes fade-in {
         from { opacity: 0; }
         to { opacity: 1; }
       }
       .animate-fade-in {
-        animation: fade-in 0.5s ease-out both;
+        animation: fade-in 1.2s ease-out both;
       }
     `}</style>
   );
