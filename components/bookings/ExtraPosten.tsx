@@ -5,6 +5,7 @@ import React from "react";
 export interface ExtraPost {
   omschrijving: string;
   bedrag: number;
+  bedragTekst?: string;
   voor: "act" | "mij";
 }
 
@@ -26,7 +27,11 @@ export default function ExtraPosten({
   function wijzig(index: number, veld: keyof ExtraPost, waarde: string) {
     const kopie = [...posten];
     if (veld === "bedrag") {
-      kopie[index] = { ...kopie[index], bedrag: parseFloat(waarde.replace(",", ".")) || 0 };
+      kopie[index] = {
+        ...kopie[index],
+        bedragTekst: waarde,
+        bedrag: parseFloat(waarde.replace(",", ".")) || 0,
+      };
     } else if (veld === "voor") {
       kopie[index] = { ...kopie[index], voor: waarde as "act" | "mij" };
     } else {
@@ -57,7 +62,7 @@ export default function ExtraPosten({
             />
             <input
               type="text"
-              value={post.bedrag || ""}
+              value={post.bedragTekst ?? (post.bedrag || "")}
               onChange={(e) => wijzig(i, "bedrag", e.target.value)}
               placeholder="0"
               className="w-24 rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
