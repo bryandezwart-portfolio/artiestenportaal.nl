@@ -15,6 +15,8 @@ const STATUSSEN = [
 interface Boeking {
   id: string;
   act_naam: string;
+  act_tarief_type: string;
+  act_tarief_bedrag: number;
   datum: string;
   eind_datum: string;
   start_tijd: string;

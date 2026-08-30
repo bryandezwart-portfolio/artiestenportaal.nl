@@ -4,9 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-const SLUG = "the-riverbeats";
-
-export default async function TheRiverbeatsPage() {
+export default async function ActPage({ params }: { params: { slug: string } }) {
+  const SLUG = params.slug;
   const supabase = createAdminClient();
 
   const { data: act, error } = await supabase

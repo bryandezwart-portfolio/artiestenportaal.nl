@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-type ActType = "dj" | "artiest" | "band";
+type ActType = "dj" | "artiest" | "band" | "special";
 
 interface Act {
   id: string;
@@ -41,6 +41,7 @@ const TYPE_STYLES: Record<ActType, { label: string; badge: string }> = {
   dj: { label: "Dj", badge: "bg-violet-50 text-violet-700" },
   artiest: { label: "Artiest", badge: "bg-orange-50 text-orange-700" },
   band: { label: "Band", badge: "bg-blue-50 text-blue-700" },
+  special: { label: "Special", badge: "bg-emerald-50 text-emerald-700" },
 };
 
 function formatEuro(n: number): string {

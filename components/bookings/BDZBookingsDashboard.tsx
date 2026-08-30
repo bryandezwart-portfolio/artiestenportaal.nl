@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 
-type ActType = "dj" | "artiest" | "band";
+type ActType = "dj" | "artiest" | "band" | "special";
 
 interface Contact {
   naam: string;
@@ -49,6 +49,13 @@ const TYPE_STYLES: Record<ActType, { label: string; dot: string; badge: string; 
     badge: "bg-orange-50 text-orange-700",
     ring: "ring-orange-200",
     bar: "bg-orange-400",
+  },
+  special: {
+    label: "Special",
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-50 text-emerald-700",
+    ring: "ring-emerald-200",
+    bar: "bg-emerald-400",
   },
   band: {
     label: "Band",

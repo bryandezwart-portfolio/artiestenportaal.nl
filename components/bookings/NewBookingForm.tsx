@@ -294,7 +294,6 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
         extra_posten: extraPosten.filter((p) => p.omschrijving.trim() || p.bedrag),
         basistarief: basistariefOpslaan,
         bezoekers: bezoekers || null,
-        basistarief: basisTarief,
         toeslag: toeslag?.toeslag || 0,
         commissie: commissieValue || 0,
         gage: gage || 0,
