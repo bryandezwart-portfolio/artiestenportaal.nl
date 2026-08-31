@@ -11,6 +11,10 @@ interface Act {
   name: string;
   type: ActType;
   genres: string[];
+  omschrijving?: string | null;
+  foto_url?: string | null;
+  video_url?: string | null;
+  website?: string | null;
   actief?: boolean | null;
   tijdperken?: string[] | null;
   specialiteit?: string | null;
@@ -88,6 +92,10 @@ export default function ActDetail({
     genres: act.genres,
     tijdperken: act.tijdperken ?? [],
     specialiteit: act.specialiteit || "",
+    omschrijving: act.omschrijving || "",
+    foto_url: act.foto_url || "",
+    video_url: act.video_url || "",
+    website: act.website || "",
     publiek_min: act.publiek_min ?? "",
     publiek_max: act.publiek_max ?? "",
     contact_naam: act.contact_naam || "",
@@ -115,6 +123,10 @@ export default function ActDetail({
       genres: act.genres,
       tijdperken: act.tijdperken ?? [],
       specialiteit: act.specialiteit || "",
+    omschrijving: act.omschrijving || "",
+    foto_url: act.foto_url || "",
+    video_url: act.video_url || "",
+    website: act.website || "",
       publiek_min: act.publiek_min ?? "",
       publiek_max: act.publiek_max ?? "",
       contact_naam: act.contact_naam || "",
@@ -228,6 +240,32 @@ export default function ActDetail({
                   value={draft.specialiteit}
                   onChange={(e) => setDraft({ ...draft, specialiteit: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
                 />
+              </div>
+              <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4">
+                <p className="mb-1 text-[12px] font-medium text-neutral-700">Voor de publieke website</p>
+                <p className="mb-3 text-[11px] text-neutral-400">Zichtbaar op bdzbookings.nl.</p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Omschrijving</label>
+                    <textarea rows={4} value={draft.omschrijving}
+                      onChange={(e) => setDraft({ ...draft, omschrijving: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Foto (link)</label>
+                    <input type="text" value={draft.foto_url}
+                      onChange={(e) => setDraft({ ...draft, foto_url: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Video (YouTube of Vimeo)</label>
+                    <input type="text" value={draft.video_url}
+                      onChange={(e) => setDraft({ ...draft, video_url: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Eigen website</label>
+                    <input type="text" value={draft.website}
+                      onChange={(e) => setDraft({ ...draft, website: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Publiek van / tot</label>
