@@ -34,6 +34,7 @@ interface BookingEvent {
   start: string;
   eind: string;
   locatie: string;
+  gage?: number | null;
 }
 
 const TYPE_STYLES: Record<ActType, { label: string; dot: string; badge: string; ring: string; bar: string }> = {
@@ -264,6 +265,9 @@ function AgendaRow({ event, act, delay }: { event: BookingEvent; act: Act; delay
             {event.start} – {event.eind}
           </p>
           <p className="text-[11px] text-neutral-400">incl. reistijdbuffer</p>
+          {typeof event.gage === "number" && event.status !== "geannuleerd" && (
+            <p className="mt-0.5 text-[13px] font-semibold text-neutral-900">{new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(event.gage)}</p>
+          )}
         </div>
       </div>
     </div>

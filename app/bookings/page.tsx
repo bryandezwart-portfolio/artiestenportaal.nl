@@ -43,7 +43,7 @@ export default async function BookingsPage() {
 
   const { data: boekingRijen } = await supabase
     .from("bdzbookings_bookings")
-    .select("id, act_id, datum, start_tijd, eind_tijd, locatie, status, bevestigd_door_act")
+    .select("id, act_id, datum, start_tijd, eind_tijd, locatie, status, bevestigd_door_act, gage")
     .order("datum");
 
   const events = (boekingRijen ?? [])
@@ -58,6 +58,7 @@ export default async function BookingsPage() {
       start: String(b.start_tijd).slice(0, 5),
       eind: String(b.eind_tijd).slice(0, 5),
       locatie: b.locatie,
+      gage: b.gage === null ? null : Number(b.gage),
     }));
 
   return <BDZBookingsDashboard acts={acts} events={events} />;
