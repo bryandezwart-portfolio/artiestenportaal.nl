@@ -227,6 +227,22 @@ export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = 
   const [gelegenheid, setGelegenheid] = useState("openbaar");
   const [opmerkingen, setOpmerkingen] = useState("");
   const [extraPosten, setExtraPosten] = useState<ExtraPost[]>([]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const q = new URLSearchParams(window.location.search);
+    const slug = q.get("act");
+    const d = q.get("datum");
+    const s0 = q.get("start");
+    const e0 = q.get("eind");
+    if (slug) {
+      const gevonden = acts.find((a: any) => a.slug === slug);
+      if (gevonden) setActId(gevonden.id);
+    }
+    if (d) setDate(d);
+    if (s0) setStart(s0);
+    if (e0) setEnd(e0);
+  }, []);
   const [commissieInput, setCommissieInput] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [bezig, setBezig] = useState(false);

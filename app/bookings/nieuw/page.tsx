@@ -8,11 +8,12 @@ export default async function NewBookingPage() {
 
   const { data: actRijen } = await supabase
     .from("bdzbookings_acts")
-    .select("id, name, type, tarief_type, tarief_bedrag, standaard_commissie, tiers")
+    .select("id, slug, name, type, tarief_type, tarief_bedrag, standaard_commissie, tiers")
     .order("name");
 
   const acts = (actRijen ?? []).map((r) => ({
     id: r.id,
+    slug: r.slug,
     name: r.name,
     type: r.type as "dj" | "artiest" | "band",
     tariefType: r.tarief_type as "vast" | "uur",
