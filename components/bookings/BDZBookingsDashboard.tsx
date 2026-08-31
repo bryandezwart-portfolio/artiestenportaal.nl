@@ -18,6 +18,7 @@ interface Act {
   name: string;
   type: ActType;
   genres: string[];
+  specialiteit?: string | null;
   tarief: string;
   live?: boolean;
   contact: Contact;
@@ -167,6 +168,11 @@ function ActCard({ act, delay }: { act: Act; delay: number }) {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-1.5">
+        {act.specialiteit && (
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[12px] font-medium text-emerald-700">
+            {act.specialiteit}
+          </span>
+        )}
         {act.genres.map((g) => (
           <span key={g} className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs text-neutral-600">
             {g}
