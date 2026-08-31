@@ -57,16 +57,16 @@ export default function Nav({
                   </Link>
                 );
               })}
+
+              
+              
             </div>
           )}
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-[13px] text-muted hidden sm:inline truncate max-w-[180px]">
-            {email}
-          </span>
+        <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/account/password"
-            className="text-[13px] text-muted hover:text-ink transition"
+            className="hidden xl:inline text-[13px] text-muted hover:text-ink transition"
           >
             Wachtwoord
           </Link>
@@ -97,6 +97,28 @@ export default function Nav({
               </Link>
             );
           })}
+
+          
+          <Link
+            href="/bookings"
+            className="whitespace-nowrap rounded-md border border-line bg-surface px-2.5 py-1 text-[12.5px] font-medium text-ink"
+          >
+            BDZBookings →
+          </Link>
+        </div>
+      )}
+      {isAdmin && (
+        <div className="border-t border-line bg-surface/40">
+          <div className="max-w-5xl mx-auto px-6 py-2 flex items-center justify-between gap-3">
+            <span className="text-[12px] text-muted">Boekingskantoor</span>
+            <Link
+              href="/bookings"
+              className="flex items-center gap-1.5 rounded-lg bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800"
+            >
+              Naar BDZBookings
+              <span aria-hidden="true" className="text-white/60">&rarr;</span>
+            </Link>
+          </div>
         </div>
       )}
     </nav>
