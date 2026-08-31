@@ -60,6 +60,8 @@ export default async function BookingsPage() {
       eind: String(b.eind_tijd).slice(0, 5),
       locatie: b.locatie,
       gage: b.gage === null ? null : Number(b.gage),
+      actNaam: actRijen.find((a) => a.id === b.act_id)?.name ?? "",
+      actEmail: actRijen.find((a) => a.id === b.act_id)?.contact_email ?? "",
     }));
 
   return <BDZBookingsDashboard acts={acts} events={events} />;

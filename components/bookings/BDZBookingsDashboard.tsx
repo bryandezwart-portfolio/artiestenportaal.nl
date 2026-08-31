@@ -36,6 +36,8 @@ interface BookingEvent {
   eind: string;
   locatie: string;
   gage?: number | null;
+  actNaam?: string;
+  actEmail?: string;
 }
 
 const TYPE_STYLES: Record<ActType, { label: string; dot: string; badge: string; ring: string; bar: string }> = {
@@ -211,6 +213,27 @@ function ActCard({ act, delay }: { act: Act; delay: number }) {
   );
 }
 
+async function stuurBevestiging(event: BookingEvent, actNaam: string) {
+  const naar = event.actEmail || "";
+  const tekst =
+    `Bevestiging sturen naar ${actNaam}` +
+    (naar ? ` (${naar})` : "") +
+    `?\n\nDe act krijgt een mail met datum, tijd, locatie en het bedrag, ` +
+    `en kan daarin met een klik bevestigen.`;
+  if (!confirm(tekst)) return;
+  const res = await fetch(`/api/bookings/uitnodiging/${event.boekingId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (res.ok) {
+    alert("Bevestiging verstuurd.");
+  } else {
+    const f = await res.json().catch(() => null);
+    alert(`Versturen mislukt: ${f?.error ?? "onbekende fout"}`);
+  }
+}
+
 function AgendaRow({ event, act, delay }: { event: BookingEvent; act: Act; delay: number }) {
   const s = TYPE_STYLES[act.type];
   return (
@@ -263,6 +286,15 @@ function AgendaRow({ event, act, delay }: { event: BookingEvent; act: Act; delay
               >
                 bewerken
               </Link>
+            )}
+            {event.boekingId && (
+              <button
+                type="button"
+                onClick={() => stuurBevestiging(event, act.name)}
+                className="ml-2 text-[12px] text-neutral-400 underline decoration-neutral-300 underline-offset-2 hover:text-neutral-700"
+              >
+                bevestiging sturen
+              </button>
             )}
           </p>
         </div>
