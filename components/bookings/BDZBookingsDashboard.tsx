@@ -199,9 +199,6 @@ function ActCard({ act, delay }: { act: Act; delay: number }) {
       </div>
 
       <div className="mt-4 flex gap-2">
-        <button className="flex-1 rounded-xl bg-neutral-900 px-3 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800">
-          Magic link versturen
-        </button>
         <Link
           href={`/bookings/acts/${act.slug}`}
           className="rounded-xl border border-neutral-200 px-3 py-2 text-center text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
