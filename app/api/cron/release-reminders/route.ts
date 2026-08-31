@@ -68,7 +68,7 @@ export async function GET(request: Request) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Artiestenportaal.nl <onboarding@resend.dev>",
+          from: "Artiestenportaal.nl <noreply@artiestenportaal.nl>",
           to: email,
           subject: `${releases.length} release(s) binnenkort`,
           html,
