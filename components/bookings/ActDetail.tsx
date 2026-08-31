@@ -10,6 +10,7 @@ interface Act {
   name: string;
   type: ActType;
   genres: string[];
+  actief?: boolean | null;
   tijdperken?: string[] | null;
   specialiteit?: string | null;
   publiek_min?: number | null;
@@ -125,6 +126,18 @@ export default function ActDetail({
 
   function cancelEditing() {
     setEditing(false);
+  }
+
+  async function toggleActief() {
+    const nieuw = !(act.actief ?? true);
+    if (!nieuw && !confirm(`${act.name} archiveren? De act verdwijnt uit het zoekscherm, boekingen blijven bewaard.`)) return;
+    const res = await fetch(`/api/bookings/acts/${act.slug}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actief: nieuw }),
+    });
+    if (res.ok) window.location.reload();
+    else alert("Niet gelukt. Probeer het nog eens.");
   }
 
   async function saveEditing() {
@@ -347,6 +360,13 @@ export default function ActDetail({
                   className="rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
                 >
                   Bewerken
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleActief}
+                  className="ml-2 rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-500 transition hover:bg-neutral-50"
+                >
+                  {(act.actief ?? true) ? "Archiveren" : "Weer activeren"}
                 </button>
               </div>
             </>
