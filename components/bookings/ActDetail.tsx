@@ -162,6 +162,10 @@ export default function ActDetail({
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif' }}
     >
       <div className="mx-auto max-w-6xl space-y-6">
+        <div className="hidden print:block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/bdzbookings-logo.png" alt="BDZBookings" className="mb-2 h-12 w-auto" />
+        </div>
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           {editing ? (
             <div className="space-y-4">
@@ -302,7 +306,7 @@ export default function ActDetail({
                 </button>
                 <button type="button"
                   onClick={cancelEditing}
-                  className="rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
+                  className="print:hidden rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
                 >
                   Annuleren
                 </button>
@@ -360,14 +364,14 @@ export default function ActDetail({
               <div className="mt-5 flex gap-2">
                 <button
                   onClick={startEditing}
-                  className="rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
+                  className="print:hidden rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
                 >
                   Bewerken
                 </button>
                 <button
                   type="button"
                   onClick={toggleActief}
-                  className="ml-2 rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-500 transition hover:bg-neutral-50"
+                  className="print:hidden ml-2 rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-500 transition hover:bg-neutral-50"
                 >
                   {(act.actief ?? true) ? "Archiveren" : "Weer activeren"}
                 </button>
@@ -376,7 +380,7 @@ export default function ActDetail({
           )}
         </div>
 
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="print:hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <h2 className="text-[15px] font-semibold text-neutral-900">Kalender abonneren</h2>
           <p className="mt-1 text-[13px] text-neutral-500">
             Deel deze link met {act.name} — eenmaal toevoegen aan Google Calendar of Apple Kalender, en nieuwe
@@ -410,7 +414,11 @@ export default function ActDetail({
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-semibold text-neutral-900">Alle boekingen</h2>
-            <button className="flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800 print:hidden"
+            >
               Download pdf
             </button>
           </div>
