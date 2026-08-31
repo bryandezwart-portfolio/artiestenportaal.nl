@@ -13,7 +13,7 @@ export default async function BookingsPage() {
 
   const { data: actRijen, error } = await supabase
     .from("bdzbookings_acts")
-    .select("id, slug, name, type, genres, specialiteit, tarief_type, tarief_bedrag, contact_naam, contact_rol, contact_email, contact_telefoon")
+    .select("id, slug, name, type, genres, specialiteit, actief, tarief_type, tarief_bedrag, contact_naam, contact_rol, contact_email, contact_telefoon")
     .order("name");
 
   if (error || !actRijen) {
@@ -31,6 +31,7 @@ export default async function BookingsPage() {
       type: rij.type as "dj" | "artiest" | "band",
       genres: rij.genres ?? [],
       specialiteit: rij.specialiteit ?? null,
+      actief: rij.actief ?? true,
       tarief: formatTarief(Number(rij.tarief_bedrag), rij.tarief_type),
       contact: {
         naam: rij.contact_naam ?? "",

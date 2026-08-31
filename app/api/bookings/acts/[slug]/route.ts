@@ -13,6 +13,7 @@ export async function PATCH(
       "name",
       "tarief_bedrag",
       "genres",
+      "actief",
       "tijdperken",
       "specialiteit",
       "publiek_min",

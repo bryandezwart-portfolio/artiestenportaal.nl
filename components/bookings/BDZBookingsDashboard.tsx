@@ -18,6 +18,7 @@ interface Act {
   name: string;
   type: ActType;
   genres: string[];
+  actief?: boolean | null;
   specialiteit?: string | null;
   tarief: string;
   live?: boolean;
@@ -169,6 +170,11 @@ function ActCard({ act, delay }: { act: Act; delay: number }) {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-1.5">
+        {act.actief === false && (
+          <span className="rounded-full bg-neutral-200 px-2.5 py-1 text-[12px] font-medium text-neutral-600">
+            Gearchiveerd
+          </span>
+        )}
         {act.specialiteit && (
           <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[12px] font-medium text-emerald-700">
             {act.specialiteit}
@@ -354,7 +360,9 @@ export default function BDZBookingsDashboard({ acts = MOCK_ACTS, events = MOCK_E
   const filteredActs = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return acts;
-    return acts.filter((a) => a.name.toLowerCase().includes(q));
+    return acts
+      .filter((a) => a.name.toLowerCase().includes(q))
+      .sort((a, b) => Number(a.actief === false) - Number(b.actief === false));
   }, [query, acts]);
 
   const filteredEvents = useMemo(() => {
