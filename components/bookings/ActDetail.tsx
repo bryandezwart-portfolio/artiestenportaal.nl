@@ -10,6 +10,10 @@ interface Act {
   name: string;
   type: ActType;
   genres: string[];
+  tijdperken?: string[] | null;
+  specialiteit?: string | null;
+  publiek_min?: number | null;
+  publiek_max?: number | null;
   tarief_type: "vast" | "uur";
   tarief_bedrag: number;
   standaard_commissie: number;
@@ -73,10 +77,15 @@ export default function ActDetail({
 }) {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [tijdperkTekst, setTijdperkTekst] = useState((act.tijdperken ?? []).join(", "));
   const [draft, setDraft] = useState({
     name: act.name,
     tarief_bedrag: act.tarief_bedrag,
     genres: act.genres,
+    tijdperken: act.tijdperken ?? [],
+    specialiteit: act.specialiteit || "",
+    publiek_min: act.publiek_min ?? "",
+    publiek_max: act.publiek_max ?? "",
     contact_naam: act.contact_naam || "",
     contact_rol: act.contact_rol || "",
     contact_email: act.contact_email || "",
@@ -100,6 +109,10 @@ export default function ActDetail({
       name: act.name,
       tarief_bedrag: act.tarief_bedrag,
       genres: act.genres,
+      tijdperken: act.tijdperken ?? [],
+      specialiteit: act.specialiteit || "",
+      publiek_min: act.publiek_min ?? "",
+      publiek_max: act.publiek_max ?? "",
       contact_naam: act.contact_naam || "",
       contact_rol: act.contact_rol || "",
       contact_email: act.contact_email || "",
@@ -176,6 +189,43 @@ export default function ActDetail({
                   }
                   className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
                 />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Tijdperken (60s, 70s, 80s, 90s, 00s, 10s, 20s)</label>
+                <input
+                  type="text"
+                  value={tijdperkTekst}
+                  onChange={(e) => setTijdperkTekst(e.target.value)}
+                  onBlur={() =>
+                    setDraft({ ...draft, tijdperken: tijdperkTekst.split(",").map((t) => t.trim()).filter(Boolean) })
+                  } className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Specialiteit (alleen bij special)</label>
+                <input
+                  type="text"
+                  value={draft.specialiteit}
+                  onChange={(e) => setDraft({ ...draft, specialiteit: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Publiek van / tot</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={draft.publiek_min}
+                    onChange={(e) => setDraft({ ...draft, publiek_min: e.target.value })}
+                    className="w-24 rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+                  />
+                  <span className="text-[13px] text-neutral-500">tot</span>
+                  <input
+                    type="text"
+                    value={draft.publiek_max}
+                    onChange={(e) => setDraft({ ...draft, publiek_max: e.target.value })}
+                    className="w-24 rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div className="border-t border-neutral-100 pt-4">
@@ -264,6 +314,11 @@ export default function ActDetail({
                 {act.genres.map((g) => (
                   <span key={g} className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs text-neutral-600">
                     {g}
+                  </span>
+                ))}
+                {(act.tijdperken ?? []).map((t) => (
+                  <span key={t} className="rounded-full border border-neutral-200 px-2.5 py-0.5 text-xs text-neutral-500">
+                    {t}
                   </span>
                 ))}
               </div>
