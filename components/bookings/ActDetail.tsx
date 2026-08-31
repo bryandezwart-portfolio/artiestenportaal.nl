@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import ActJaaroverzicht from "@/components/bookings/ActJaaroverzicht";
 
 type ActType = "dj" | "artiest" | "band" | "special";
 
@@ -33,6 +34,8 @@ interface Booking {
   eind_tijd: string;
   locatie: string;
   status: string;
+  gage?: number | null;
+  commissie?: number | null;
 }
 
 interface Onbeschikbaarheid {
@@ -402,16 +405,18 @@ export default function ActDetail({
           </a>
         </div>
 
+        <ActJaaroverzicht bookingen={bookingen} />
+
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-semibold text-neutral-900">Boekingen deze maand</h2>
-            <button className="flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50">
+            <h2 className="text-[15px] font-semibold text-neutral-900">Alle boekingen</h2>
+            <button className="flex items-center gap-1.5 rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800">
               Download pdf
             </button>
           </div>
           <div className="mt-4 space-y-2">
             {bookingen.length === 0 ? (
-              <p className="text-[13px] text-neutral-400">Geen boekingen deze maand.</p>
+              <p className="text-[13px] text-neutral-400">Nog geen boekingen.</p>
             ) : (
               bookingen.map((b) => (
                 <div key={b.id} className="flex items-center justify-between rounded-xl border border-neutral-100 px-4 py-3">
