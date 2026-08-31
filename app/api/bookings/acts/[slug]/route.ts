@@ -15,6 +15,7 @@ export async function PATCH(
       "genres",
       "omschrijving",
       "foto_url",
+      "kaart_foto",
       "video_url",
       "website",
       "actief",

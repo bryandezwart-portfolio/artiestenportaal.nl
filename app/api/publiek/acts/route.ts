@@ -19,7 +19,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("bdzbookings_acts")
-    .select("slug, name, type, specialiteit, genres, tijdperken, publiek_min, publiek_max, omschrijving, foto_url, fotos, video_url, website, socials")
+    .select("slug, name, type, specialiteit, genres, tijdperken, publiek_min, publiek_max, omschrijving, kaart_foto, foto_url, fotos, video_url, website, socials")
     .eq("publiek_zichtbaar", true)
     .or("actief.is.null,actief.eq.true")
     .eq("volwassenen_only", false)
@@ -39,6 +39,7 @@ export async function GET() {
     publiek_van: a.publiek_min ?? null,
     publiek_tot: a.publiek_max ?? null,
     omschrijving: a.omschrijving ?? null,
+    kaart_foto: a.kaart_foto ?? null,
     foto: a.foto_url ?? null,
     fotos: a.fotos ?? [],
     video: a.video_url ?? null,
