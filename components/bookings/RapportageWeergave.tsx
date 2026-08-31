@@ -126,7 +126,10 @@ export function RapportageWeergave({ boekingen = MOCK_BOOKINGS }: { boekingen?: 
         </div>
 
         <div className="mb-6 hidden print:block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/bdzbookings-logo.png" alt="BDZBookings" className="mb-4 h-12 w-auto" />
           <h1 className="text-xl font-semibold text-neutral-900">{periodeLabel(periode, referentieDatum)}</h1>
+          <p className="mt-1 text-[12px] text-neutral-500">Boekingsoverzicht</p>
         </div>
 
         <div
