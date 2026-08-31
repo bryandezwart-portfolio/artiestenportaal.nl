@@ -7,3 +7,6 @@ node_modules/
 
 *.bak
 tsconfig.tsbuildinfo
+
+.DS_Store
+*.backup
