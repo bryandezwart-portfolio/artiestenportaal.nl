@@ -13,6 +13,7 @@ interface Act {
   genres: string[];
   omschrijving?: string | null;
   foto_url?: string | null;
+  kaart_foto?: string | null;
   video_url?: string | null;
   website?: string | null;
   actief?: boolean | null;
@@ -94,6 +95,7 @@ export default function ActDetail({
     specialiteit: act.specialiteit || "",
     omschrijving: act.omschrijving || "",
     foto_url: act.foto_url || "",
+    kaart_foto: act.kaart_foto || "",
     video_url: act.video_url || "",
     website: act.website || "",
     publiek_min: act.publiek_min ?? "",
@@ -125,6 +127,7 @@ export default function ActDetail({
       specialiteit: act.specialiteit || "",
     omschrijving: act.omschrijving || "",
     foto_url: act.foto_url || "",
+    kaart_foto: act.kaart_foto || "",
     video_url: act.video_url || "",
     website: act.website || "",
       publiek_min: act.publiek_min ?? "",
@@ -251,7 +254,12 @@ export default function ActDetail({
                       onChange={(e) => setDraft({ ...draft, omschrijving: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Foto (link)</label>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Kaartfoto — vierkant, min. 1000x1000</label>
+                    <input type="text" value={draft.kaart_foto}
+                      onChange={(e) => setDraft({ ...draft, kaart_foto: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Sfeerfoto (link)</label>
                     <input type="text" value={draft.foto_url}
                       onChange={(e) => setDraft({ ...draft, foto_url: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
                   </div>
