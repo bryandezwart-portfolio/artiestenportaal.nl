@@ -65,7 +65,7 @@ export async function POST(
     const totaal = Number(b.basistarief) + Number(b.toeslag) + postenTotaal;
 
     const basisUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    const bevestigUrl = `${basisUrl}/bookings/bevestig/${b.id}`;
+    const bevestigUrl = `${basisUrl}/bevestig/${b.id}`;
 
     const overMiddernacht = b.eind_datum && b.eind_datum !== b.datum;
 

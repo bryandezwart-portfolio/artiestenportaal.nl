@@ -29,7 +29,7 @@ export async function POST(
     }
 
     revalidatePath("/bookings");
-    revalidatePath(`/bookings/bevestig/${params.id}`);
+    revalidatePath(`/bevestig/${params.id}`);
     return NextResponse.json({ boeking: data });
   } catch (e) {
     console.error("Onverwachte fout bij bevestigen:", e);
