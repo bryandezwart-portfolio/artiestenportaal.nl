@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function PATCH(
@@ -7,6 +8,25 @@ export async function PATCH(
   { params }: { params: { slug: string } }
 ) {
   try {
+    const auth = createClient();
+    const {
+      data: { user },
+    } = await auth.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+    }
+
+    const { data: admin } = await auth
+      .from("label_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!admin) {
+      return NextResponse.json({ error: "Geen toegang" }, { status: 403 });
+    }
+
     const velden = await request.json();
 
     const toegestaan = [

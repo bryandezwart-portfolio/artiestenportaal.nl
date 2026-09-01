@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 type ActType = "dj" | "artiest" | "band" | "special";
 type TariefType = "vast" | "uur" | "half_uur";
@@ -159,9 +158,10 @@ export default function NewActForm() {
     setError("");
     setBezig(true);
 
-    const supabase = createClient();
-
-    const { error: dbError } = await supabase.from("bdzbookings_acts").insert({
+    const res = await fetch("/api/bookings/acts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
       slug: maakSlug(name),
       name: name.trim(),
       type,
@@ -197,15 +197,18 @@ export default function NewActForm() {
       contact_rol: contactRol.trim() || null,
       contact_email: contactEmail.trim(),
       contact_telefoon: contactTelefoon.trim() || null,
+      }),
     });
 
     setBezig(false);
 
-    if (dbError) {
+    const uitkomst = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
       setError(
-        dbError.code === "23505"
+        uitkomst.code === "23505"
           ? "Er bestaat al een act met deze naam. Kies een andere naam of vul een variant in."
-          : `Opslaan mislukt: ${dbError.message}`
+          : `Opslaan mislukt: ${uitkomst.error || res.statusText}`
       );
       return;
     }
