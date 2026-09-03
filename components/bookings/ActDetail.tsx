@@ -89,7 +89,7 @@ export default function ActDetail({
   const [tijdperkTekst, setTijdperkTekst] = useState((act.tijdperken ?? []).join(", "));
   const [draft, setDraft] = useState({
     name: act.name,
-    tarief_bedrag: act.tarief_bedrag,
+    tarief_bedrag: act.tarief_bedrag as number | string,
     genres: act.genres,
     tijdperken: act.tijdperken ?? [],
     specialiteit: act.specialiteit || "",
@@ -156,6 +156,17 @@ export default function ActDetail({
     });
     if (res.ok) window.location.reload();
     else alert("Niet gelukt. Probeer het nog eens.");
+  }
+
+  async function verwijderAct() {
+    if (!confirm(`${act.name} definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return;
+    const res = await fetch(`/api/bookings/acts/${act.slug}`, { method: "DELETE" });
+    if (res.ok) {
+      window.location.href = "/bookings";
+      return;
+    }
+    const uitkomst = await res.json().catch(() => ({}));
+    alert(uitkomst.error || "Verwijderen niet gelukt.");
   }
 
   async function saveEditing() {
@@ -423,6 +434,13 @@ export default function ActDetail({
                   className="print:hidden ml-2 rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-500 transition hover:bg-neutral-50"
                 >
                   {(act.actief ?? true) ? "Archiveren" : "Weer activeren"}
+                </button>
+                <button
+                  type="button"
+                  onClick={verwijderAct}
+                  className="print:hidden ml-2 rounded-xl border border-red-200 px-4 py-2 text-[13px] font-medium text-red-600 transition hover:bg-red-50"
+                >
+                  Verwijderen
                 </button>
               </div>
             </>
