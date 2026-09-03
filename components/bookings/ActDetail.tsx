@@ -162,7 +162,10 @@ export default function ActDetail({
     const res = await fetch(`/api/bookings/acts/${act.slug}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(draft),
+      body: JSON.stringify({
+        ...draft,
+        tarief_bedrag: parseFloat(String(draft.tarief_bedrag)) || 0,
+      }),
     });
     if (res.ok) {
       window.location.reload();
@@ -202,7 +205,7 @@ export default function ActDetail({
                   <input
                     type="number"
                     value={draft.tarief_bedrag}
-                    onChange={(e) => setDraft({ ...draft, tarief_bedrag: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setDraft({ ...draft, tarief_bedrag: e.target.value })}
                     className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
                   />
                 </div>
