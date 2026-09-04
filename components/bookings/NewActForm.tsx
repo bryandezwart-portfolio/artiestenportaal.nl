@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-type ActType = "dj" | "artiest" | "band" | "special";
+type ActType = "dj" | "artiest" | "band" | "act" | "overig";
 type TariefType = "vast" | "uur" | "half_uur";
 type ArtiestKlasse = "A" | "B" | "C";
 type SetMaat = "S" | "M" | "L" | "XL";
@@ -18,7 +18,8 @@ const TYPE_OPTIONS: { value: ActType; label: string; activeClass: string }[] = [
   { value: "dj", label: "Dj", activeClass: "bg-violet-500 text-white" },
   { value: "artiest", label: "Artiest", activeClass: "bg-orange-500 text-white" },
   { value: "band", label: "Band", activeClass: "bg-blue-500 text-white" },
-  { value: "special", label: "Special", activeClass: "bg-emerald-500 text-white" },
+  { value: "act", label: "Act", activeClass: "bg-emerald-500 text-white" },
+  { value: "overig", label: "Overig", activeClass: "bg-amber-500 text-white" },
 ];
 
 const SPECIALITEIT_OPTIONS = [
@@ -165,7 +166,7 @@ export default function NewActForm() {
       slug: maakSlug(name),
       name: name.trim(),
       type,
-      specialiteit: type === "special" ? specialiteit || null : null,
+      specialiteit: type === "act" ? specialiteit || null : null,
       genres: genresInput
         .split(",")
         .map((g) => g.trim())
@@ -238,7 +239,7 @@ export default function NewActForm() {
     );
   }
 
-  const isSpecial = type === "special";
+  const isAct = type === "act";
   const isDoorboeking = boekingType === "doorboeking";
 
   const inputClass =
@@ -278,7 +279,7 @@ export default function NewActForm() {
             </div>
           </div>
 
-          {isSpecial && (
+          {isAct && (
             <div>
               <label className="mb-1.5 block text-[13px] font-medium text-neutral-700">Soort act</label>
               <select

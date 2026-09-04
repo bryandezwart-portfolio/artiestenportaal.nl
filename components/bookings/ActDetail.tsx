@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import ActJaaroverzicht from "@/components/bookings/ActJaaroverzicht";
 
-type ActType = "dj" | "artiest" | "band" | "special";
+type ActType = "dj" | "artiest" | "band" | "act" | "overig";
 
 interface Act {
   id: string;
@@ -54,7 +54,8 @@ const TYPE_STYLES: Record<ActType, { label: string; badge: string }> = {
   dj: { label: "Dj", badge: "bg-violet-50 text-violet-700" },
   artiest: { label: "Artiest", badge: "bg-orange-50 text-orange-700" },
   band: { label: "Band", badge: "bg-blue-50 text-blue-700" },
-  special: { label: "Special", badge: "bg-emerald-50 text-emerald-700" },
+  act: { label: "Act", badge: "bg-emerald-50 text-emerald-700" },
+  overig: { label: "Overig", badge: "bg-amber-50 text-amber-700" },
 };
 
 function formatEuro(n: number): string {
@@ -251,7 +252,7 @@ export default function ActDetail({
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Specialiteit (alleen bij special)</label>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Specialiteit (alleen bij act of overig)</label>
                 <input
                   type="text"
                   value={draft.specialiteit}

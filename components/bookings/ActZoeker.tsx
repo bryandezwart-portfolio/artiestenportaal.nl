@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-type ActType = "dj" | "artiest" | "band" | "special";
+type ActType = "dj" | "artiest" | "band" | "act" | "overig";
 
 interface Act {
   id: string;
@@ -29,21 +29,24 @@ const TYPES: { waarde: ActType; label: string; actief: string }[] = [
   { waarde: "dj", label: "Dj", actief: "bg-violet-500 text-white border-transparent" },
   { waarde: "artiest", label: "Artiest", actief: "bg-orange-500 text-white border-transparent" },
   { waarde: "band", label: "Band", actief: "bg-blue-500 text-white border-transparent" },
-  { waarde: "special", label: "Special", actief: "bg-emerald-500 text-white border-transparent" },
+  { waarde: "act", label: "Act", actief: "bg-emerald-500 text-white border-transparent" },
+  { waarde: "overig", label: "Overig", actief: "bg-amber-500 text-white border-transparent" },
 ];
 
 const BADGE: Record<ActType, string> = {
   dj: "bg-violet-50 text-violet-700",
   artiest: "bg-orange-50 text-orange-700",
   band: "bg-blue-50 text-blue-700",
-  special: "bg-emerald-50 text-emerald-700",
+  act: "bg-emerald-50 text-emerald-700",
+  overig: "bg-amber-50 text-amber-700",
 };
 
 const LABEL: Record<ActType, string> = {
   dj: "Dj",
   artiest: "Artiest",
   band: "Band",
-  special: "Special",
+  act: "Act",
+  overig: "Overig",
 };
 
 function euro(n: number): string {
