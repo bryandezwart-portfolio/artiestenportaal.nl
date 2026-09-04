@@ -18,7 +18,7 @@ export default async function ZoekenPage() {
     (rij.tijdperken ?? []).forEach((t: string) => t && tijdperkSet.add(t));
   });
 
-  const VOLGORDE = ["60s", "70s", "80s", "90s", "00s", "10s", "20s"];
+  const VOLGORDE = ["50s", "60s", "70s", "80s", "90s", "00s", "10s", "20s"];
 
   return (
     <ActZoeker

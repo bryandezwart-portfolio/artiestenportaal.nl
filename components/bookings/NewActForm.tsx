@@ -34,7 +34,24 @@ const SPECIALITEIT_OPTIONS = [
   "Anders",
 ];
 
-const TIJDPERKEN = ["60s", "70s", "80s", "90s", "00s", "10s", "20s"];
+const TIJDPERKEN = ["50s", "60s", "70s", "80s", "90s", "00s", "10s", "20s"];
+
+const GENRES = [
+  "Top40",
+  "Dance Classics",
+  "EDM/Dance/Techno",
+  "Foute Uur",
+  "Nederlandstalig",
+  "Volksmuziek",
+  "Levenslied",
+  "Schlager",
+  "Boerenrock",
+  "Piratenmuziek",
+  "Urban/Hiphop",
+  "Rock",
+  "Pop",
+  "Apres-ski",
+];
 
 const MAANDEN = [
   { nr: 1, label: "jan" },
@@ -122,6 +139,19 @@ export default function NewActForm() {
 
   function removeTier(id: number) {
     setTiers(tiers.filter((t) => t.id !== id));
+  }
+
+  function genreLijst(): string[] {
+    return genresInput
+      .split(",")
+      .map((g) => g.trim())
+      .filter(Boolean);
+  }
+
+  function toggleGenre(g: string) {
+    const huidig = genreLijst();
+    const nieuwe = huidig.includes(g) ? huidig.filter((x) => x !== g) : [...huidig, g];
+    setGenresInput(nieuwe.join(", "));
   }
 
   function toggleTijdperk(t: string) {
@@ -310,11 +340,27 @@ export default function NewActForm() {
             </div>
             <div>
               <label className="mb-1.5 block text-[13px] font-medium text-neutral-700">Genres</label>
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {GENRES.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => toggleGenre(g)}
+                    className={`rounded-lg border px-2.5 py-1 text-[12px] font-medium transition ${
+                      genreLijst().includes(g)
+                        ? "border-neutral-900 bg-neutral-900 text-white"
+                        : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
               <input
                 type="text"
                 value={genresInput}
                 onChange={(e) => setGenresInput(e.target.value)}
-                placeholder="House, Techno"
+                placeholder="Of typ zelf, met komma's gescheiden"
                 className={inputClass}
               />
             </div>
