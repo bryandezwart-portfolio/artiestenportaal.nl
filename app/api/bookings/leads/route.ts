@@ -96,6 +96,7 @@ export async function PATCH(request: Request) {
       "contact_telefoon",
       "richtprijs",
       "vervolgdatum",
+      "gelegenheden",
       "act_id",
     ];
 

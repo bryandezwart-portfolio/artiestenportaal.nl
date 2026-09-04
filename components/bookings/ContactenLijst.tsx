@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { GELEGENHEDEN } from "@/lib/bookings/keuzelijsten";
 import Link from "next/link";
 
 type Lead = {
@@ -16,6 +17,7 @@ type Lead = {
   contact_telefoon: string | null;
   richtprijs: number | null;
   vervolgdatum: string | null;
+  gelegenheden?: string[] | null;
   act_id: string | null;
 };
 
@@ -73,6 +75,7 @@ export default function ContactenLijst({
   const [bewerken, setBewerken] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [verwijderVraag, setVerwijderVraag] = useState<string | null>(null);
+  const [gelegenheidExtra, setGelegenheidExtra] = useState("");
   const [omzetFout, setOmzetFout] = useState("");
 
   const zichtbaar = leads.filter((l) => {
@@ -164,6 +167,14 @@ export default function ContactenLijst({
     setVerwijderVraag(null);
     setOpen(null);
     router.refresh();
+  }
+
+  async function toggleGelegenheid(lead: Lead, waarde: string) {
+    const huidig = lead.gelegenheden ?? [];
+    const nieuwe = huidig.includes(waarde)
+      ? huidig.filter((x) => x !== waarde)
+      : [...huidig, waarde];
+    await wijzig(lead.id, { gelegenheden: nieuwe });
   }
 
   async function omzetten(id: string) {
@@ -404,6 +415,55 @@ export default function ContactenLijst({
                       {omzetFout && <span className="ml-3 text-[12px] text-red-600">{omzetFout}</span>}
                     </div>
                   )}
+
+                  <div className="mb-4">
+                    <span className="mb-1.5 block text-[12px] text-neutral-500">Gelegenheden:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {GELEGENHEDEN.map((g) => (
+                        <button
+                          key={g}
+                          onClick={() => toggleGelegenheid(lead, g)}
+                          className={`rounded-lg border px-2.5 py-1 text-[11px] ${
+                            (lead.gelegenheden ?? []).includes(g)
+                              ? "border-neutral-900 bg-neutral-900 text-white"
+                              : "border-neutral-200 bg-white text-neutral-500"
+                          }`}
+                        >
+                          {g}
+                        </button>
+                      ))}
+                      {(lead.gelegenheden ?? [])
+                        .filter((g) => !GELEGENHEDEN.includes(g))
+                        .map((g) => (
+                          <button
+                            key={g}
+                            onClick={() => toggleGelegenheid(lead, g)}
+                            className="rounded-lg border border-neutral-900 bg-neutral-900 px-2.5 py-1 text-[11px] text-white"
+                          >
+                            {g} ×
+                          </button>
+                        ))}
+                    </div>
+                    <input
+                      type="text"
+                      value={open === lead.id ? gelegenheidExtra : ""}
+                      onChange={(e) => setGelegenheidExtra(e.target.value)}
+                      onBlur={() => {
+                        const extra = gelegenheidExtra
+                          .split(",")
+                          .map((g) => g.trim().toLowerCase())
+                          .filter(Boolean);
+                        if (extra.length) {
+                          wijzig(lead.id, {
+                            gelegenheden: [...(lead.gelegenheden ?? []), ...extra],
+                          });
+                          setGelegenheidExtra("");
+                        }
+                      }}
+                      placeholder="Iets anders? Bijv. babyshower"
+                      className={`mt-2 w-full ${VELD}`}
+                    />
+                  </div>
 
                   <div className="mb-4 flex items-center gap-2">
                     <span className="text-[12px] text-neutral-500">Terugkomen op:</span>

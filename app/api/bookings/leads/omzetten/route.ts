@@ -63,6 +63,7 @@ export async function POST(request: Request) {
         specialiteit: lead.specialiteit,
         genres: [],
         tijdperken: [],
+        gelegenheden: lead.gelegenheden ?? [],
         publiek_min: 0,
         publiek_max: 100000,
         tarief_type: "vast",
