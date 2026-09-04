@@ -13,6 +13,7 @@ interface Act {
   type: ActType;
   specialiteit: string | null;
   genres: string[] | null;
+  gelegenheden?: string[] | null;
   tijdperken: string[] | null;
   tarief_type: string;
   tarief_bedrag: number | null;
@@ -67,9 +68,11 @@ function urenTussen(start: string, eind: string): number {
 
 export default function ActZoeker({
   genres,
+  gelegenheden,
   tijdperken,
 }: {
   genres: string[];
+  gelegenheden: string[];
   tijdperken: string[];
 }) {
   const [datum, setDatum] = useState("");
@@ -80,9 +83,11 @@ export default function ActZoeker({
   const [types, setTypes] = useState<ActType[]>([]);
   const [gekozenGenres, setGekozenGenres] = useState<string[]>([]);
   const [gekozenTijdperken, setGekozenTijdperken] = useState<string[]>([]);
+  const [gekozenGelegenheden, setGekozenGelegenheden] = useState<string[]>([]);
   const [volwassenen, setVolwassenen] = useState(false);
 
   const [resultaten, setResultaten] = useState<Act[] | null>(null);
+  const [nietIngevuld, setNietIngevuld] = useState<Act[]>([]);
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState("");
 
@@ -104,8 +109,10 @@ export default function ActZoeker({
     setTypes([]);
     setGekozenGenres([]);
     setGekozenTijdperken([]);
+    setGekozenGelegenheden([]);
     setVolwassenen(false);
     setResultaten(null);
+    setNietIngevuld([]);
     setFout("");
   }
 
@@ -129,6 +136,7 @@ export default function ActZoeker({
       p_types: types.length ? types : null,
       p_genres: gekozenGenres.length ? gekozenGenres : null,
       p_tijdperken: gekozenTijdperken.length ? gekozenTijdperken : null,
+      p_gelegenheden: gekozenGelegenheden.length ? gekozenGelegenheden : null,
       p_volwassenen: volwassenen,
     });
 
@@ -140,7 +148,35 @@ export default function ActZoeker({
       return;
     }
 
-    setResultaten((data ?? []) as Act[]);
+    const gevonden = (data ?? []) as Act[];
+    setResultaten(gevonden);
+
+    if (gekozenGelegenheden.length) {
+      const { data: alles, error: fout2 } = await supabase.rpc("bdzbookings_beschikbare_acts", {
+        p_datum: datum,
+        p_start_tijd: start,
+        p_eind_tijd: eind,
+        p_publiek: publiek.trim() ? parseInt(publiek.replace(/\D/g, ""), 10) : null,
+        p_max_bedrag: maxBedrag.trim()
+          ? Number(maxBedrag.replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, ""))
+          : null,
+        p_types: types.length ? types : null,
+        p_genres: gekozenGenres.length ? gekozenGenres : null,
+        p_tijdperken: gekozenTijdperken.length ? gekozenTijdperken : null,
+        p_gelegenheden: null,
+        p_volwassenen: volwassenen,
+      });
+
+      if (fout2) console.error("tweede zoekopdracht mislukt:", fout2.message);
+      const gevondenIds = new Set(gevonden.map((a) => a.id));
+      setNietIngevuld(
+        ((alles ?? []) as Act[]).filter(
+          (a) => !gevondenIds.has(a.id) && !(a.gelegenheden ?? []).length
+        )
+      );
+    } else {
+      setNietIngevuld([]);
+    }
   }
 
   const uren = urenTussen(start, eind);
@@ -258,6 +294,22 @@ export default function ActZoeker({
               </div>
             </div>
           )}
+
+          <div className="mt-5">
+            <label className="mb-1.5 block text-[13px] font-medium text-neutral-700">Gelegenheid</label>
+            <div className="flex flex-wrap gap-1.5">
+              {gelegenheden.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => toggle(gekozenGelegenheden, setGekozenGelegenheden, g)}
+                  className={`${knopBasis} ${gekozenGelegenheden.includes(g) ? knopAan : knopUit}`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <label className="mt-5 flex items-center gap-2 text-[13px] text-neutral-600">
             <input
@@ -389,6 +441,38 @@ export default function ActZoeker({
               );
             })}
           </div>
+
+          {nietIngevuld.length > 0 && (
+            <div className="bdz-neon mt-8 rounded-2xl border border-emerald-300 bg-neutral-50 p-5">
+              <style>{`
+                @keyframes bdzNeon {
+                  0%, 100% { box-shadow: 0 0 6px rgba(16, 185, 129, 0.20); }
+                  50%      { box-shadow: 0 0 16px rgba(16, 185, 129, 0.45); }
+                }
+                .bdz-neon { animation: bdzNeon 3s ease-in-out infinite; }
+                @media (prefers-reduced-motion: reduce) {
+                  .bdz-neon { animation: none; box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+                }
+              `}</style>
+              <p className="mb-1 text-[13px] font-medium text-neutral-700">
+                Nog niet ingevuld — mogelijk ook geschikt
+              </p>
+              <p className="mb-3 text-[12px] text-neutral-500">
+                Bij deze acts staat nog geen gelegenheid ingevuld. Ze zijn wel vrij op dit moment.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {nietIngevuld.map((act) => (
+                  <Link
+                    key={act.id}
+                    href={`/bookings/acts/${act.slug}`}
+                    className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-[13px] text-neutral-700 transition hover:bg-neutral-100"
+                  >
+                    {act.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
