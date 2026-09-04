@@ -216,12 +216,21 @@ function ActPicker({
   );
 }
 
-export default function NewBookingForm({ acts = MOCK_ACTS, bestaandeBoekingen = EXISTING_BOOKINGS }: { acts?: Act[]; bestaandeBoekingen?: ExistingBooking[] }) {
-  const [actId, setActId] = useState<any>(acts[0].id);
-  const [date, setDate] = useState("");
+export default function NewBookingForm({
+  acts = MOCK_ACTS,
+  bestaandeBoekingen = EXISTING_BOOKINGS,
+  vooringevuld,
+}: {
+  acts?: Act[];
+  bestaandeBoekingen?: ExistingBooking[];
+  vooringevuld?: { datum: string; locatie: string; actSlug: string };
+}) {
+  const vooraf = acts.find((a) => (a as any).slug === vooringevuld?.actSlug);
+  const [actId, setActId] = useState<any>(vooraf ? vooraf.id : acts[0].id);
+  const [date, setDate] = useState(vooringevuld?.datum ?? "");
   const [start, setStart] = useState("21:00");
   const [end, setEnd] = useState("23:00");
-  const [locatie, setLocatie] = useState("");
+  const [locatie, setLocatie] = useState(vooringevuld?.locatie ?? "");
   const [bezoekersInput, setBezoekersInput] = useState("");
   const [speelschema, setSpeelschema] = useState("");
   const [gelegenheid, setGelegenheid] = useState("openbaar");
