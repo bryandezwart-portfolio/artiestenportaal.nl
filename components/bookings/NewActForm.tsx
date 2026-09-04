@@ -36,6 +36,21 @@ const SPECIALITEIT_OPTIONS = [
 
 const TIJDPERKEN = ["50s", "60s", "70s", "80s", "90s", "00s", "10s", "20s"];
 
+const GELEGENHEDEN = [
+  "bruiloft",
+  "bedrijfsfeest",
+  "dorpsfeest",
+  "kermis",
+  "carnaval",
+  "oktoberfeest",
+  "verjaardag",
+  "jubileum",
+  "opening",
+  "kerst/nieuwjaar",
+  "sinterklaas",
+  "festival",
+];
+
 const GENRES = [
   "Top40",
   "Dance Classics",
@@ -100,6 +115,8 @@ export default function NewActForm() {
   const [specialiteit, setSpecialiteit] = useState("");
   const [name, setName] = useState("");
   const [genresInput, setGenresInput] = useState("");
+  const [gelegenheden, setGelegenheden] = useState<string[]>([]);
+  const [gelegenheidExtra, setGelegenheidExtra] = useState("");
   const [tijdperken, setTijdperken] = useState<string[]>([]);
   const [publiekMin, setPubliekMin] = useState("");
   const [publiekMax, setPubliekMax] = useState("");
@@ -154,6 +171,12 @@ export default function NewActForm() {
     setGenresInput(nieuwe.join(", "));
   }
 
+  function toggleGelegenheid(g: string) {
+    setGelegenheden(
+      gelegenheden.includes(g) ? gelegenheden.filter((x) => x !== g) : [...gelegenheden, g]
+    );
+  }
+
   function toggleTijdperk(t: string) {
     setTijdperken(tijdperken.includes(t) ? tijdperken.filter((x) => x !== t) : [...tijdperken, t]);
   }
@@ -202,6 +225,13 @@ export default function NewActForm() {
         .map((g) => g.trim())
         .filter(Boolean),
       tijdperken,
+      gelegenheden: [
+        ...gelegenheden,
+        ...gelegenheidExtra
+          .split(",")
+          .map((g) => g.trim().toLowerCase())
+          .filter(Boolean),
+      ],
       publiek_min: min ?? 0,
       publiek_max: max ?? 100000,
       tarief_type: tariefType,
@@ -399,6 +429,36 @@ export default function NewActForm() {
             </div>
             <p className="mt-1.5 text-[11px] text-neutral-400">
               Los van genre. Een coverband kan pop spelen én de jaren 80 tot 00 bestrijken.
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[13px] font-medium text-neutral-700">Gelegenheden</label>
+            <div className="flex flex-wrap gap-1.5">
+              {GELEGENHEDEN.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => toggleGelegenheid(g)}
+                  className={`rounded-lg border px-2.5 py-1 text-[12px] font-medium transition ${
+                    gelegenheden.includes(g)
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                  }`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text"
+              value={gelegenheidExtra}
+              onChange={(e) => setGelegenheidExtra(e.target.value)}
+              placeholder="Iets anders? Bijv. babyshower, jachtfeest"
+              className={`mt-2 ${inputClass}`}
+            />
+            <p className="mt-1.5 text-[11px] text-neutral-400">
+              Klik aan waar deze act past. Laat je het leeg, dan verschijnt hij bij het zoeken onder "nog niet ingevuld".
             </p>
           </div>
 

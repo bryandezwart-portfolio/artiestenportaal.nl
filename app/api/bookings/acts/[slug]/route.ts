@@ -40,6 +40,7 @@ export async function PATCH(
       "website",
       "actief",
       "tijdperken",
+      "gelegenheden",
       "specialiteit",
       "publiek_min",
       "publiek_max",

@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       "specialiteit",
       "genres",
       "tijdperken",
+      "gelegenheden",
       "publiek_min",
       "publiek_max",
       "tarief_type",

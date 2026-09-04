@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { TIJDPERKEN, GENRES, GELEGENHEDEN } from "@/lib/bookings/keuzelijsten";
 import ActJaaroverzicht from "@/components/bookings/ActJaaroverzicht";
 
 type ActType = "dj" | "artiest" | "band" | "act" | "overig";
@@ -11,6 +12,7 @@ interface Act {
   name: string;
   type: ActType;
   genres: string[];
+  gelegenheden?: string[] | null;
   omschrijving?: string | null;
   foto_url?: string | null;
   kaart_foto?: string | null;
@@ -88,10 +90,13 @@ export default function ActDetail({
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [tijdperkTekst, setTijdperkTekst] = useState((act.tijdperken ?? []).join(", "));
+  const [genreExtra, setGenreExtra] = useState("");
+  const [gelegenheidExtra, setGelegenheidExtra] = useState("");
   const [draft, setDraft] = useState({
     name: act.name,
     tarief_bedrag: act.tarief_bedrag as number | string,
     genres: act.genres,
+    gelegenheden: act.gelegenheden ?? [],
     tijdperken: act.tijdperken ?? [],
     specialiteit: act.specialiteit || "",
     omschrijving: act.omschrijving || "",
@@ -124,6 +129,7 @@ export default function ActDetail({
       name: act.name,
       tarief_bedrag: act.tarief_bedrag,
       genres: act.genres,
+      gelegenheden: act.gelegenheden ?? [],
       tijdperken: act.tijdperken ?? [],
       specialiteit: act.specialiteit || "",
     omschrijving: act.omschrijving || "",
@@ -142,6 +148,21 @@ export default function ActDetail({
     });
     setEditing(true);
   }
+
+  function toggleInDraft(veld: "genres" | "gelegenheden" | "tijdperken", waarde: string) {
+    const huidig = (draft[veld] as string[]) ?? [];
+    setDraft({
+      ...draft,
+      [veld]: huidig.includes(waarde) ? huidig.filter((x) => x !== waarde) : [...huidig, waarde],
+    });
+  }
+
+  const knopClass = (aan: boolean) =>
+    `rounded-lg border px-2.5 py-1 text-[12px] font-medium transition ${
+      aan
+        ? "border-neutral-900 bg-neutral-900 text-white"
+        : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+    }`;
 
   function cancelEditing() {
     setEditing(false);
@@ -224,31 +245,111 @@ export default function ActDetail({
               </div>
 
               <div>
-                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Genres (met komma's gescheiden)</label>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Genres</label>
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {GENRES.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => toggleInDraft("genres", g)}
+                      className={knopClass(draft.genres.includes(g))}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+                {draft.genres.filter((g) => !GENRES.includes(g)).length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-1.5">
+                    {draft.genres
+                      .filter((g) => !GENRES.includes(g))
+                      .map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => toggleInDraft("genres", g)}
+                          className={knopClass(true)}
+                        >
+                          {g} ×
+                        </button>
+                      ))}
+                  </div>
+                )}
                 <input
                   type="text"
-                  value={draft.genres.join(", ")}
-                  onChange={(e) =>
-                    setDraft({
-                      ...draft,
-                      genres: e.target.value
-                        .split(",")
-                        .map((g) => g.trim())
-                        .filter(Boolean),
-                    })
-                  }
+                  value={genreExtra}
+                  onChange={(e) => setGenreExtra(e.target.value)}
+                  onBlur={() => {
+                    const extra = genreExtra.split(",").map((g) => g.trim()).filter(Boolean);
+                    if (extra.length) {
+                      setDraft({ ...draft, genres: [...draft.genres, ...extra] });
+                      setGenreExtra("");
+                    }
+                  }}
+                  placeholder="Iets anders? Typ en klik ernaast"
                   className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Tijdperken (60s, 70s, 80s, 90s, 00s, 10s, 20s)</label>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Tijdperken</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {TIJDPERKEN.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => toggleInDraft("tijdperken", t)}
+                      className={knopClass((draft.tijdperken ?? []).includes(t))}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Gelegenheden</label>
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {GELEGENHEDEN.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => toggleInDraft("gelegenheden", g)}
+                      className={knopClass((draft.gelegenheden ?? []).includes(g))}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+                {(draft.gelegenheden ?? []).filter((g) => !GELEGENHEDEN.includes(g)).length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-1.5">
+                    {(draft.gelegenheden ?? [])
+                      .filter((g) => !GELEGENHEDEN.includes(g))
+                      .map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => toggleInDraft("gelegenheden", g)}
+                          className={knopClass(true)}
+                        >
+                          {g} ×
+                        </button>
+                      ))}
+                  </div>
+                )}
                 <input
                   type="text"
-                  value={tijdperkTekst}
-                  onChange={(e) => setTijdperkTekst(e.target.value)}
-                  onBlur={() =>
-                    setDraft({ ...draft, tijdperken: tijdperkTekst.split(",").map((t) => t.trim()).filter(Boolean) })
-                  } className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+                  value={gelegenheidExtra}
+                  onChange={(e) => setGelegenheidExtra(e.target.value)}
+                  onBlur={() => {
+                    const extra = gelegenheidExtra
+                      .split(",")
+                      .map((g) => g.trim().toLowerCase())
+                      .filter(Boolean);
+                    if (extra.length) {
+                      setDraft({ ...draft, gelegenheden: [...(draft.gelegenheden ?? []), ...extra] });
+                      setGelegenheidExtra("");
+                    }
+                  }}
+                  placeholder="Iets anders? Bijv. babyshower"
+                  className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
                 />
               </div>
               <div>
