@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import FotoUpload from "@/components/bookings/FotoUpload";
+import GalerijUpload from "@/components/bookings/GalerijUpload";
 import { TIJDPERKEN, GENRES, GELEGENHEDEN } from "@/lib/bookings/keuzelijsten";
 import ActJaaroverzicht from "@/components/bookings/ActJaaroverzicht";
 
@@ -32,6 +34,13 @@ interface Act {
   contact_telefoon: string | null;
   aantal_personen: number | null;
   bezetting: string | null;
+  bio?: string | null;
+  fotos?: string[] | null;
+  video_url_2?: string | null;
+  spotify_url?: string | null;
+  prijs_vanaf?: number | null;
+  prijs_notitie?: string | null;
+  publiek_zichtbaar?: boolean | null;
 }
 
 interface Booking {
@@ -112,6 +121,12 @@ export default function ActDetail({
     contact_telefoon: act.contact_telefoon || "",
     aantal_personen: act.aantal_personen ?? "",
     bezetting: act.bezetting || "",
+    bio: act.bio || "",
+    video_url_2: act.video_url_2 || "",
+    spotify_url: act.spotify_url || "",
+    prijs_vanaf: act.prijs_vanaf ?? "",
+    prijs_notitie: act.prijs_notitie || "",
+    fotos: (act.fotos ?? []) as string[],
   });
 
   const calendarUrl =
@@ -145,6 +160,12 @@ export default function ActDetail({
       contact_telefoon: act.contact_telefoon || "",
     aantal_personen: act.aantal_personen ?? "",
     bezetting: act.bezetting || "",
+    bio: act.bio || "",
+    video_url_2: act.video_url_2 || "",
+    spotify_url: act.spotify_url || "",
+    prijs_vanaf: act.prijs_vanaf ?? "",
+    prijs_notitie: act.prijs_notitie || "",
+    fotos: (act.fotos ?? []) as string[],
     });
     setEditing(true);
   }
@@ -369,16 +390,23 @@ export default function ActDetail({
                     <textarea rows={4} value={draft.omschrijving}
                       onChange={(e) => setDraft({ ...draft, omschrijving: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
                   </div>
-                  <div>
-                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Kaartfoto — vierkant, min. 1000x1000</label>
-                    <input type="text" value={draft.kaart_foto}
-                      onChange={(e) => setDraft({ ...draft, kaart_foto: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Sfeerfoto (link)</label>
-                    <input type="text" value={draft.foto_url}
-                      onChange={(e) => setDraft({ ...draft, foto_url: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
-                  </div>
+                  <FotoUpload
+                    slug={act.slug}
+                    label="Kaartfoto — vierkant, min. 1000x1000"
+                    waarde={draft.kaart_foto}
+                    onKlaar={(url) => setDraft({ ...draft, kaart_foto: url })}
+                  />
+                  <FotoUpload
+                    slug={act.slug}
+                    label="Hoofdfoto — breed, bovenaan de actpagina"
+                    waarde={draft.foto_url}
+                    onKlaar={(url) => setDraft({ ...draft, foto_url: url })}
+                  />
+                  <GalerijUpload
+                    slug={act.slug}
+                    fotos={draft.fotos}
+                    onKlaar={(urls) => setDraft({ ...draft, fotos: urls })}
+                  />
                   <div>
                     <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Video (YouTube of Vimeo)</label>
                     <input type="text" value={draft.video_url}
@@ -456,6 +484,64 @@ export default function ActDetail({
                     placeholder="Bijv. 4 muzikanten, geluidsman, lichtman"
                     className="rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
                   />
+                </div>
+              </div>
+
+              <div className="space-y-3 rounded-xl bg-neutral-50 p-4">
+                <p className="text-[13px] font-medium text-neutral-500">Publiek profiel &mdash; wat op bdzbookings.nl komt te staan</p>
+
+                <div>
+                  <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Biografie</label>
+                  <textarea
+                    rows={6}
+                    value={draft.bio}
+                    onChange={(e) => setDraft({ ...draft, bio: e.target.value })}
+                    placeholder="Wie is deze act? Schrijf in alinea's, gescheiden door een lege regel."
+                    className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">YouTube video 2</label>
+                    <input
+                      type="text"
+                      value={draft.video_url_2}
+                      onChange={(e) => setDraft({ ...draft, video_url_2: e.target.value })}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Spotify (playlist of artiest)</label>
+                    <input
+                      type="text"
+                      value={draft.spotify_url}
+                      onChange={(e) => setDraft({ ...draft, spotify_url: e.target.value })}
+                      placeholder="https://open.spotify.com/artist/..."
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Prijs vanaf (incl. commissie)</label>
+                    <input
+                      type="number"
+                      value={draft.prijs_vanaf}
+                      onChange={(e) => setDraft({ ...draft, prijs_vanaf: e.target.value })}
+                      placeholder="Bijv. 950"
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Toelichting bij prijs</label>
+                    <input
+                      type="text"
+                      value={draft.prijs_notitie}
+                      onChange={(e) => setDraft({ ...draft, prijs_notitie: e.target.value })}
+                      placeholder="Excl. reiskosten"
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 

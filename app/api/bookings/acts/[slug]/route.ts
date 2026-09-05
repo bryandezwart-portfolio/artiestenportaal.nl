@@ -48,6 +48,13 @@ export async function PATCH(
       "contact_rol",
       "contact_email",
       "contact_telefoon",
+      "bio",
+      "fotos",
+      "video_url_2",
+      "spotify_url",
+      "prijs_vanaf",
+      "prijs_notitie",
+      "publiek_zichtbaar",
       "aantal_personen",
       "bezetting",
     ];
