@@ -6,13 +6,15 @@ import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
   { href: "/bookings", label: "Overzicht" },
+  { href: "/bookings/aanvragen", label: "Aanvragen" },
+  { href: "/bookings/contacten", label: "Contacten" },
   { href: "/bookings/zoeken", label: "Wie is vrij?" },
   { href: "/bookings/rapportage", label: "Rapportage" },
   { href: "/bookings/acts/nieuw", label: "Nieuwe act" },
   { href: "/bookings/nieuw", label: "Nieuwe boeking" },
 ];
 
-export default function BookingsNav() {
+export default function BookingsNav({ nieuweAanvragen = 0 }: { nieuweAanvragen?: number }) {
   const pathname = usePathname();
 
   return (
@@ -37,6 +39,15 @@ export default function BookingsNav() {
                 }`}
               >
                 {link.label}
+                {link.href === "/bookings/aanvragen" && nieuweAanvragen > 0 && (
+                  <span
+                    className={`ml-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[11px] font-semibold ${
+                      active ? "bg-white text-neutral-900" : "bg-amber-500 text-white"
+                    }`}
+                  >
+                    {nieuweAanvragen}
+                  </span>
+                )}
               </Link>
             );
           })}

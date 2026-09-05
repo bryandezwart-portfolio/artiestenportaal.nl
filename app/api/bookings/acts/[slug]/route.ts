@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function PATCH(
@@ -7,6 +8,25 @@ export async function PATCH(
   { params }: { params: { slug: string } }
 ) {
   try {
+    const auth = createClient();
+    const {
+      data: { user },
+    } = await auth.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+    }
+
+    const { data: admin } = await auth
+      .from("label_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!admin) {
+      return NextResponse.json({ error: "Geen toegang" }, { status: 403 });
+    }
+
     const velden = await request.json();
 
     const toegestaan = [
@@ -20,6 +40,7 @@ export async function PATCH(
       "website",
       "actief",
       "tijdperken",
+      "gelegenheden",
       "specialiteit",
       "publiek_min",
       "publiek_max",
@@ -27,6 +48,13 @@ export async function PATCH(
       "contact_rol",
       "contact_email",
       "contact_telefoon",
+      "bio",
+      "fotos",
+      "video_url_2",
+      "spotify_url",
+      "prijs_vanaf",
+      "prijs_notitie",
+      "publiek_zichtbaar",
       "aantal_personen",
       "bezetting",
     ];
@@ -58,6 +86,72 @@ export async function PATCH(
     return NextResponse.json({ act: data });
   } catch (e) {
     console.error("Onverwachte fout bij opslaan:", e);
+    return NextResponse.json({ error: "Onverwachte fout" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { slug: string } }
+) {
+  try {
+    const auth = createClient();
+    const {
+      data: { user },
+    } = await auth.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 });
+    }
+
+    const { data: admin } = await auth
+      .from("label_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!admin) {
+      return NextResponse.json({ error: "Geen toegang" }, { status: 403 });
+    }
+
+    const db = createAdminClient();
+
+    const { data: act } = await db
+      .from("bdzbookings_acts")
+      .select("id")
+      .eq("slug", params.slug)
+      .single();
+
+    if (!act) {
+      return NextResponse.json({ error: "Act niet gevonden" }, { status: 404 });
+    }
+
+    const { count } = await db
+      .from("bdzbookings_bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("act_id", act.id);
+
+    if (count && count > 0) {
+      return NextResponse.json(
+        {
+          error: `Deze act heeft ${count} boeking(en) in het systeem. Archiveer hem in plaats van verwijderen, anders raak je die boekingen kwijt.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await db.from("bdzbookings_acts").delete().eq("id", act.id);
+
+    if (error) {
+      console.error("Verwijderen act mislukt:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    revalidatePath("/bookings");
+    revalidatePath("/bookings/contacten");
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("Onverwachte fout bij verwijderen act:", e);
     return NextResponse.json({ error: "Onverwachte fout" }, { status: 500 });
   }
 }

@@ -28,7 +28,7 @@ export default async function BookingsPage() {
       id: index + 1,
       slug: rij.slug,
       name: rij.name,
-      type: rij.type as "dj" | "artiest" | "band",
+      type: rij.type as "dj" | "artiest" | "band" | "act" | "overig",
       genres: rij.genres ?? [],
       specialiteit: rij.specialiteit ?? null,
       actief: rij.actief ?? true,

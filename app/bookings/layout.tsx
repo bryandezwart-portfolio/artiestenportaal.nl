@@ -19,9 +19,14 @@ export default async function BookingsLayout({ children }: { children: React.Rea
 
   if (!admin) redirect("/artist");
 
+  const { count: nieuweAanvragen } = await supabase
+    .from("bdzbookings_aanvragen")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "nieuw");
+
   return (
     <>
-      <BookingsNav />
+      <BookingsNav nieuweAanvragen={nieuweAanvragen ?? 0} />
       <PageTransition>{children}</PageTransition>
     </>
   );

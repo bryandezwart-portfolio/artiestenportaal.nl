@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import FotoUpload from "@/components/bookings/FotoUpload";
+import GalerijUpload from "@/components/bookings/GalerijUpload";
+import { TIJDPERKEN, GENRES, GELEGENHEDEN } from "@/lib/bookings/keuzelijsten";
 import ActJaaroverzicht from "@/components/bookings/ActJaaroverzicht";
 
-type ActType = "dj" | "artiest" | "band" | "special";
+type ActType = "dj" | "artiest" | "band" | "act" | "overig";
 
 interface Act {
   id: string;
@@ -11,6 +14,7 @@ interface Act {
   name: string;
   type: ActType;
   genres: string[];
+  gelegenheden?: string[] | null;
   omschrijving?: string | null;
   foto_url?: string | null;
   kaart_foto?: string | null;
@@ -30,6 +34,13 @@ interface Act {
   contact_telefoon: string | null;
   aantal_personen: number | null;
   bezetting: string | null;
+  bio?: string | null;
+  fotos?: string[] | null;
+  video_url_2?: string | null;
+  spotify_url?: string | null;
+  prijs_vanaf?: number | null;
+  prijs_notitie?: string | null;
+  publiek_zichtbaar?: boolean | null;
 }
 
 interface Booking {
@@ -54,7 +65,8 @@ const TYPE_STYLES: Record<ActType, { label: string; badge: string }> = {
   dj: { label: "Dj", badge: "bg-violet-50 text-violet-700" },
   artiest: { label: "Artiest", badge: "bg-orange-50 text-orange-700" },
   band: { label: "Band", badge: "bg-blue-50 text-blue-700" },
-  special: { label: "Special", badge: "bg-emerald-50 text-emerald-700" },
+  act: { label: "Act", badge: "bg-emerald-50 text-emerald-700" },
+  overig: { label: "Overig", badge: "bg-amber-50 text-amber-700" },
 };
 
 function formatEuro(n: number): string {
@@ -87,10 +99,13 @@ export default function ActDetail({
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [tijdperkTekst, setTijdperkTekst] = useState((act.tijdperken ?? []).join(", "));
+  const [genreExtra, setGenreExtra] = useState("");
+  const [gelegenheidExtra, setGelegenheidExtra] = useState("");
   const [draft, setDraft] = useState({
     name: act.name,
-    tarief_bedrag: act.tarief_bedrag,
+    tarief_bedrag: act.tarief_bedrag as number | string,
     genres: act.genres,
+    gelegenheden: act.gelegenheden ?? [],
     tijdperken: act.tijdperken ?? [],
     specialiteit: act.specialiteit || "",
     omschrijving: act.omschrijving || "",
@@ -106,6 +121,12 @@ export default function ActDetail({
     contact_telefoon: act.contact_telefoon || "",
     aantal_personen: act.aantal_personen ?? "",
     bezetting: act.bezetting || "",
+    bio: act.bio || "",
+    video_url_2: act.video_url_2 || "",
+    spotify_url: act.spotify_url || "",
+    prijs_vanaf: act.prijs_vanaf ?? "",
+    prijs_notitie: act.prijs_notitie || "",
+    fotos: (act.fotos ?? []) as string[],
   });
 
   const calendarUrl =
@@ -123,6 +144,7 @@ export default function ActDetail({
       name: act.name,
       tarief_bedrag: act.tarief_bedrag,
       genres: act.genres,
+      gelegenheden: act.gelegenheden ?? [],
       tijdperken: act.tijdperken ?? [],
       specialiteit: act.specialiteit || "",
     omschrijving: act.omschrijving || "",
@@ -138,9 +160,30 @@ export default function ActDetail({
       contact_telefoon: act.contact_telefoon || "",
     aantal_personen: act.aantal_personen ?? "",
     bezetting: act.bezetting || "",
+    bio: act.bio || "",
+    video_url_2: act.video_url_2 || "",
+    spotify_url: act.spotify_url || "",
+    prijs_vanaf: act.prijs_vanaf ?? "",
+    prijs_notitie: act.prijs_notitie || "",
+    fotos: (act.fotos ?? []) as string[],
     });
     setEditing(true);
   }
+
+  function toggleInDraft(veld: "genres" | "gelegenheden" | "tijdperken", waarde: string) {
+    const huidig = (draft[veld] as string[]) ?? [];
+    setDraft({
+      ...draft,
+      [veld]: huidig.includes(waarde) ? huidig.filter((x) => x !== waarde) : [...huidig, waarde],
+    });
+  }
+
+  const knopClass = (aan: boolean) =>
+    `rounded-lg border px-2.5 py-1 text-[12px] font-medium transition ${
+      aan
+        ? "border-neutral-900 bg-neutral-900 text-white"
+        : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+    }`;
 
   function cancelEditing() {
     setEditing(false);
@@ -158,11 +201,25 @@ export default function ActDetail({
     else alert("Niet gelukt. Probeer het nog eens.");
   }
 
+  async function verwijderAct() {
+    if (!confirm(`${act.name} definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return;
+    const res = await fetch(`/api/bookings/acts/${act.slug}`, { method: "DELETE" });
+    if (res.ok) {
+      window.location.href = "/bookings";
+      return;
+    }
+    const uitkomst = await res.json().catch(() => ({}));
+    alert(uitkomst.error || "Verwijderen niet gelukt.");
+  }
+
   async function saveEditing() {
     const res = await fetch(`/api/bookings/acts/${act.slug}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(draft),
+      body: JSON.stringify({
+        ...draft,
+        tarief_bedrag: parseFloat(String(draft.tarief_bedrag)) || 0,
+      }),
     });
     if (res.ok) {
       window.location.reload();
@@ -202,42 +259,122 @@ export default function ActDetail({
                   <input
                     type="number"
                     value={draft.tarief_bedrag}
-                    onChange={(e) => setDraft({ ...draft, tarief_bedrag: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setDraft({ ...draft, tarief_bedrag: e.target.value })}
                     className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Genres (met komma's gescheiden)</label>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Genres</label>
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {GENRES.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => toggleInDraft("genres", g)}
+                      className={knopClass(draft.genres.includes(g))}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+                {draft.genres.filter((g) => !GENRES.includes(g)).length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-1.5">
+                    {draft.genres
+                      .filter((g) => !GENRES.includes(g))
+                      .map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => toggleInDraft("genres", g)}
+                          className={knopClass(true)}
+                        >
+                          {g} ×
+                        </button>
+                      ))}
+                  </div>
+                )}
                 <input
                   type="text"
-                  value={draft.genres.join(", ")}
-                  onChange={(e) =>
-                    setDraft({
-                      ...draft,
-                      genres: e.target.value
-                        .split(",")
-                        .map((g) => g.trim())
-                        .filter(Boolean),
-                    })
-                  }
+                  value={genreExtra}
+                  onChange={(e) => setGenreExtra(e.target.value)}
+                  onBlur={() => {
+                    const extra = genreExtra.split(",").map((g) => g.trim()).filter(Boolean);
+                    if (extra.length) {
+                      setDraft({ ...draft, genres: [...draft.genres, ...extra] });
+                      setGenreExtra("");
+                    }
+                  }}
+                  placeholder="Iets anders? Typ en klik ernaast"
                   className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Tijdperken (60s, 70s, 80s, 90s, 00s, 10s, 20s)</label>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Tijdperken</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {TIJDPERKEN.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => toggleInDraft("tijdperken", t)}
+                      className={knopClass((draft.tijdperken ?? []).includes(t))}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Gelegenheden</label>
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {GELEGENHEDEN.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => toggleInDraft("gelegenheden", g)}
+                      className={knopClass((draft.gelegenheden ?? []).includes(g))}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+                {(draft.gelegenheden ?? []).filter((g) => !GELEGENHEDEN.includes(g)).length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-1.5">
+                    {(draft.gelegenheden ?? [])
+                      .filter((g) => !GELEGENHEDEN.includes(g))
+                      .map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => toggleInDraft("gelegenheden", g)}
+                          className={knopClass(true)}
+                        >
+                          {g} ×
+                        </button>
+                      ))}
+                  </div>
+                )}
                 <input
                   type="text"
-                  value={tijdperkTekst}
-                  onChange={(e) => setTijdperkTekst(e.target.value)}
-                  onBlur={() =>
-                    setDraft({ ...draft, tijdperken: tijdperkTekst.split(",").map((t) => t.trim()).filter(Boolean) })
-                  } className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
+                  value={gelegenheidExtra}
+                  onChange={(e) => setGelegenheidExtra(e.target.value)}
+                  onBlur={() => {
+                    const extra = gelegenheidExtra
+                      .split(",")
+                      .map((g) => g.trim().toLowerCase())
+                      .filter(Boolean);
+                    if (extra.length) {
+                      setDraft({ ...draft, gelegenheden: [...(draft.gelegenheden ?? []), ...extra] });
+                      setGelegenheidExtra("");
+                    }
+                  }}
+                  placeholder="Iets anders? Bijv. babyshower"
+                  className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Specialiteit (alleen bij special)</label>
+                <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Specialiteit (alleen bij act of overig)</label>
                 <input
                   type="text"
                   value={draft.specialiteit}
@@ -253,16 +390,23 @@ export default function ActDetail({
                     <textarea rows={4} value={draft.omschrijving}
                       onChange={(e) => setDraft({ ...draft, omschrijving: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
                   </div>
-                  <div>
-                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Kaartfoto — vierkant, min. 1000x1000</label>
-                    <input type="text" value={draft.kaart_foto}
-                      onChange={(e) => setDraft({ ...draft, kaart_foto: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Sfeerfoto (link)</label>
-                    <input type="text" value={draft.foto_url}
-                      onChange={(e) => setDraft({ ...draft, foto_url: e.target.value })} className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-400 focus:outline-none" />
-                  </div>
+                  <FotoUpload
+                    slug={act.slug}
+                    label="Kaartfoto — vierkant, min. 1000x1000"
+                    waarde={draft.kaart_foto}
+                    onKlaar={(url) => setDraft({ ...draft, kaart_foto: url })}
+                  />
+                  <FotoUpload
+                    slug={act.slug}
+                    label="Hoofdfoto — breed, bovenaan de actpagina"
+                    waarde={draft.foto_url}
+                    onKlaar={(url) => setDraft({ ...draft, foto_url: url })}
+                  />
+                  <GalerijUpload
+                    slug={act.slug}
+                    fotos={draft.fotos}
+                    onKlaar={(urls) => setDraft({ ...draft, fotos: urls })}
+                  />
                   <div>
                     <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Video (YouTube of Vimeo)</label>
                     <input type="text" value={draft.video_url}
@@ -343,6 +487,64 @@ export default function ActDetail({
                 </div>
               </div>
 
+              <div className="space-y-3 rounded-xl bg-neutral-50 p-4">
+                <p className="text-[13px] font-medium text-neutral-500">Publiek profiel &mdash; wat op bdzbookings.nl komt te staan</p>
+
+                <div>
+                  <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Biografie</label>
+                  <textarea
+                    rows={6}
+                    value={draft.bio}
+                    onChange={(e) => setDraft({ ...draft, bio: e.target.value })}
+                    placeholder="Wie is deze act? Schrijf in alinea's, gescheiden door een lege regel."
+                    className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">YouTube video 2</label>
+                    <input
+                      type="text"
+                      value={draft.video_url_2}
+                      onChange={(e) => setDraft({ ...draft, video_url_2: e.target.value })}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Spotify (playlist of artiest)</label>
+                    <input
+                      type="text"
+                      value={draft.spotify_url}
+                      onChange={(e) => setDraft({ ...draft, spotify_url: e.target.value })}
+                      placeholder="https://open.spotify.com/artist/..."
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Prijs vanaf (incl. commissie)</label>
+                    <input
+                      type="number"
+                      value={draft.prijs_vanaf}
+                      onChange={(e) => setDraft({ ...draft, prijs_vanaf: e.target.value })}
+                      placeholder="Bijv. 950"
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Toelichting bij prijs</label>
+                    <input
+                      type="text"
+                      value={draft.prijs_notitie}
+                      onChange={(e) => setDraft({ ...draft, prijs_notitie: e.target.value })}
+                      placeholder="Excl. reiskosten"
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="flex gap-2">
                 <button type="button"
                   onClick={saveEditing}
@@ -420,6 +622,13 @@ export default function ActDetail({
                   className="print:hidden ml-2 rounded-xl border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-500 transition hover:bg-neutral-50"
                 >
                   {(act.actief ?? true) ? "Archiveren" : "Weer activeren"}
+                </button>
+                <button
+                  type="button"
+                  onClick={verwijderAct}
+                  className="print:hidden ml-2 rounded-xl border border-red-200 px-4 py-2 text-[13px] font-medium text-red-600 transition hover:bg-red-50"
+                >
+                  Verwijderen
                 </button>
               </div>
             </>

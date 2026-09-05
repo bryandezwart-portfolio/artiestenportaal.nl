@@ -3,7 +3,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewBookingPage() {
+export default async function NewBookingPage({
+  searchParams,
+}: {
+  searchParams: { datum?: string; locatie?: string; act?: string };
+}) {
   const supabase = createAdminClient();
 
   const { data: actRijen } = await supabase
@@ -38,7 +42,15 @@ export default async function NewBookingPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 px-6 py-10">
-      <NewBookingForm acts={acts} bestaandeBoekingen={bestaandeBoekingen} />
+      <NewBookingForm
+        acts={acts}
+        bestaandeBoekingen={bestaandeBoekingen}
+        vooringevuld={{
+          datum: searchParams.datum ?? "",
+          locatie: searchParams.locatie ?? "",
+          actSlug: searchParams.act ?? "",
+        }}
+      />
     </div>
   );
 }
