@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: "/bookings/contacten", label: "Contacten" },
   { href: "/bookings/zoeken", label: "Wie is vrij?" },
   { href: "/bookings/rapportage", label: "Rapportage" },
+  { href: "/bookings/sfeer", label: "Sfeerfoto's" },
   { href: "/bookings/acts/nieuw", label: "Nieuwe act" },
   { href: "/bookings/nieuw", label: "Nieuwe boeking" },
 ];
