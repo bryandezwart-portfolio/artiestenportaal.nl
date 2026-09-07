@@ -40,6 +40,10 @@ interface Act {
   spotify_url?: string | null;
   prijs_vanaf?: number | null;
   prijs_notitie?: string | null;
+  boeking_prijs?: string | null;
+  boeking_tijdsduur?: string | null;
+  boeking_bezetting?: string | null;
+  boeking_geluid?: string | null;
   publiek_zichtbaar?: boolean | null;
 }
 
@@ -126,6 +130,10 @@ export default function ActDetail({
     spotify_url: act.spotify_url || "",
     prijs_vanaf: act.prijs_vanaf ?? "",
     prijs_notitie: act.prijs_notitie || "",
+    boeking_prijs: act.boeking_prijs || "",
+    boeking_tijdsduur: act.boeking_tijdsduur || "",
+    boeking_bezetting: act.boeking_bezetting || "",
+    boeking_geluid: act.boeking_geluid || "",
     fotos: (act.fotos ?? []) as string[],
   });
 
@@ -165,6 +173,10 @@ export default function ActDetail({
     spotify_url: act.spotify_url || "",
     prijs_vanaf: act.prijs_vanaf ?? "",
     prijs_notitie: act.prijs_notitie || "",
+    boeking_prijs: act.boeking_prijs || "",
+    boeking_tijdsduur: act.boeking_tijdsduur || "",
+    boeking_bezetting: act.boeking_bezetting || "",
+    boeking_geluid: act.boeking_geluid || "",
     fotos: (act.fotos ?? []) as string[],
     });
     setEditing(true);
@@ -539,6 +551,46 @@ export default function ActDetail({
                       value={draft.prijs_notitie}
                       onChange={(e) => setDraft({ ...draft, prijs_notitie: e.target.value })}
                       placeholder="Excl. reiskosten"
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Boekingsblok — Prijs (vanaf)</label>
+                    <input
+                      type="text"
+                      value={draft.boeking_prijs}
+                      onChange={(e) => setDraft({ ...draft, boeking_prijs: e.target.value })}
+                      placeholder="Vanaf €950 of: Op aanvraag"
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Boekingsblok — Tijdsduur</label>
+                    <input
+                      type="text"
+                      value={draft.boeking_tijdsduur}
+                      onChange={(e) => setDraft({ ...draft, boeking_tijdsduur: e.target.value })}
+                      placeholder="3x 45 minuten of: 2 uur doorlopend"
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Boekingsblok — Bezetting</label>
+                    <input
+                      type="text"
+                      value={draft.boeking_bezetting}
+                      onChange={(e) => setDraft({ ...draft, boeking_bezetting: e.target.value })}
+                      placeholder="6 personen of: Duo met zangeres"
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[12px] font-medium text-neutral-600">Boekingsblok — Geluid</label>
+                    <input
+                      type="text"
+                      value={draft.boeking_geluid}
+                      onChange={(e) => setDraft({ ...draft, boeking_geluid: e.target.value })}
+                      placeholder="Incl. geluid tot 500 personen of: Excl. geluid, inprikken mogelijk"
                       className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
                     />
                   </div>

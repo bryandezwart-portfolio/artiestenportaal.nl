@@ -57,6 +57,10 @@ export async function PATCH(
       "publiek_zichtbaar",
       "aantal_personen",
       "bezetting",
+      "boeking_prijs",
+      "boeking_tijdsduur",
+      "boeking_bezetting",
+      "boeking_geluid",
     ];
 
     const update: Record<string, unknown> = {};
