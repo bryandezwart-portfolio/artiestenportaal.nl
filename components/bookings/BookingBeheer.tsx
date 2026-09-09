@@ -286,6 +286,14 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
 
         <div className="mt-6 flex flex-wrap gap-2">
           {!geannuleerd && (
+            <Link
+              href={`/bookings/contracten/${boeking.id}`}
+              className="rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800"
+            >
+              Overeenkomsten
+            </Link>
+          )}
+          {!geannuleerd && (
             <button
               type="button"
               disabled={mailBezig}
@@ -299,7 +307,7 @@ export default function BookingBeheer({ boeking }: { boeking: Boeking }) {
             type="button"
             disabled={bezig}
             onClick={() => opslaan()}
-            className="rounded-xl bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50"
+            className="rounded-xl border border-neutral-900 px-4 py-2 text-[13px] font-medium text-neutral-900 transition hover:bg-neutral-50 disabled:opacity-50"
           >
             {bezig ? "Bezig..." : "Wijzigingen opslaan"}
           </button>
