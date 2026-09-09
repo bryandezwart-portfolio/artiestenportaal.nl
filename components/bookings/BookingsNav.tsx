@@ -20,12 +20,12 @@ export default function BookingsNav({ nieuweAanvragen = 0 }: { nieuweAanvragen?:
 
   return (
     <div
-      className="sticky top-0 z-20 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur print:hidden"
+      className="sticky top-0 z-20 border-b border-neutral-200 bg-white/95 backdrop-blur print:hidden"
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif' }}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2.5 sm:px-10">
         <Link href="/bookings" className="flex items-center">
-          <img src="/bdzbookings-logo.png" alt="BDZBookings" className="h-7 w-auto" />
+          <img src="/bdzbookings-logo.png" alt="BDZBookings" className="h-8 w-auto" />
         </Link>
         <nav className="flex items-center gap-1">
           {NAV_LINKS.map((link) => {
@@ -36,14 +36,14 @@ export default function BookingsNav({ nieuweAanvragen = 0 }: { nieuweAanvragen?:
                 key={link.href}
                 href={link.href}
                 className={`rounded-lg px-3 py-1.5 text-[13px] font-medium transition ${
-                  active ? "bg-white text-neutral-900" : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                  active ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
                 }`}
               >
                 {link.label}
                 {link.href === "/bookings/aanvragen" && nieuweAanvragen > 0 && (
                   <span
                     className={`ml-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[11px] font-semibold ${
-                      active ? "bg-neutral-900 text-white" : "bg-amber-500 text-white"
+                      active ? "bg-white text-neutral-900" : "bg-amber-500 text-white"
                     }`}
                   >
                     {nieuweAanvragen}
@@ -55,13 +55,13 @@ export default function BookingsNav({ nieuweAanvragen = 0 }: { nieuweAanvragen?:
         </nav>
       </div>
 
-      <div className="border-t border-neutral-800 bg-neutral-900">
+      <div className="border-t border-neutral-200 bg-neutral-50">
         <div className="mx-auto flex max-w-6xl items-center justify-end gap-3 px-6 py-2 sm:px-10">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-[13px] font-medium text-neutral-900 transition hover:bg-neutral-200"
+            className="flex items-center gap-1.5 rounded-lg bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800"
           >
-            <span aria-hidden="true" className="text-neutral-500">&larr;</span>
+            <span aria-hidden="true" className="text-neutral-400">&larr;</span>
             Naar Artiestenportaal
           </Link>
         </div>
