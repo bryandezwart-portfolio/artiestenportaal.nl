@@ -57,6 +57,15 @@ export default function BookingsNav({ nieuweAanvragen = 0 }: { nieuweAanvragen?:
 
       <div className="border-t border-neutral-200 bg-neutral-50">
         <div className="mx-auto flex max-w-6xl items-center justify-end gap-3 px-6 py-2 sm:px-10">
+          <a
+            href="https://bdzfactuur.nl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg border border-orange-500 px-4 py-2 text-[13px] font-medium text-orange-600 shadow-[0_0_12px_rgba(249,115,22,0.45)] transition hover:bg-orange-50 hover:shadow-[0_0_20px_rgba(249,115,22,0.75)]"
+          >
+            BDZFactuur
+          </a>
+
           <Link
             href="/dashboard"
             className="flex items-center gap-1.5 rounded-lg bg-neutral-900 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-neutral-800"
