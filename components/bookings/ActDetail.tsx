@@ -5,6 +5,7 @@ import FotoUpload from "@/components/bookings/FotoUpload";
 import GalerijUpload from "@/components/bookings/GalerijUpload";
 import { TIJDPERKEN, GENRES, GELEGENHEDEN } from "@/lib/bookings/keuzelijsten";
 import ActJaaroverzicht from "@/components/bookings/ActJaaroverzicht";
+import SamenwerkingKnop from "@/components/bookings/SamenwerkingKnop";
 
 type ActType = "dj" | "artiest" | "band" | "act" | "overig";
 
@@ -91,10 +92,18 @@ export default function ActDetail({
   act,
   bookingen,
   onbeschikbaarheid,
+  samenwerking = null,
 }: {
   act: Act;
   bookingen: Booking[];
   onbeschikbaarheid: Onbeschikbaarheid[];
+  samenwerking?: {
+    id: string;
+    status: string;
+    token: string | null;
+    ingangsdatum: string | null;
+    getekend_op: string | null;
+  } | null;
 }) {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -663,6 +672,8 @@ export default function ActDetail({
             Of open direct in de kalender-app
           </a>
         </div>
+
+        <SamenwerkingKnop actId={act.id} actNaam={act.name} bestaand={samenwerking} />
 
         <ActJaaroverzicht bookingen={bookingen} />
 
