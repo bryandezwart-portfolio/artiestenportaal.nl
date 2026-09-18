@@ -2,12 +2,9 @@
 // Wil je de tekst aanpassen? Pas dit bestand aan en verhoog SJABLOON_VERSIE,
 // zodat je later kunt zien met welke versie een contract is getekend.
 
-export const SJABLOON_VERSIE = 1;
 
-/**
- * Jouw bedrijfsgegevens. Verhuis je of verandert de naam, dan pas je het
- * hier op één plek aan en staat het in alle acht de overeenkomsten goed.
- */
+export const SJABLOON_VERSIE = 2;
+
 export const BOEKINGSKANTOOR: string[] = [
   "BDZ Ventures, handelend onder de naam Bryan de Zwart Bookings",
   "De Nieuwe Erven 3, unit 13617, 5431 NV Cuijk",
@@ -17,14 +14,24 @@ export const BOEKINGSKANTOOR: string[] = [
 ];
 
 export type Partij = "klant" | "act";
-export type ActType = "dj" | "artiest" | "band" | "act";
+export type ActType = "dj" | "artiest" | "band" | "act" | "overig";
 
-export type Blok = { label: string; regels: string[] };
+/** "boeking" = per optreden. "samenwerking" = de eenmalige overeenkomst met de act. */
+export type Soort = "boeking" | "samenwerking";
+
+/**
+ * Een blok met een kop en een aantal regels.
+ * Staat er "alleen", dan hoort het blok alleen bij die acttypes.
+ * Ontbreekt "alleen", dan geldt het blok voor iedereen.
+ */
+export type Blok = { label: string; regels: string[]; alleen?: ActType[] };
 
 export type Sjabloon = {
   id: string;
+  soort: Soort;
   partij: Partij;
-  type: ActType;
+  /** null = geldt voor alle acttypes */
+  type: ActType | null;
   titel: string;
   ondertitel: string | null;
   intro: string;
@@ -32,7 +39,6 @@ export type Sjabloon = {
   artikelen: Blok[];
 };
 
-/** Wie mag welk veld invullen. "bureau" = alleen jij. */
 export const VELDEN: Record<string, { label: string; eigenaar: "bureau" | "klant" | "act" }> =
 {
   "datum": {
@@ -490,6 +496,66 @@ export const VELDEN: Record<string, { label: string; eigenaar: "bureau" | "klant
   "benodigde_stroom": {
     "label": "Wat de Act meebrengt — Benodigde stroom",
     "eigenaar": "bureau"
+  },
+  "ingangsdatum": {
+    "label": "Samenwerking — Ingangsdatum",
+    "eigenaar": "bureau"
+  },
+  "muziekstijl": {
+    "label": "Muziek — gewenste stijl van de opdrachtgever",
+    "eigenaar": "bureau"
+  },
+  "geluid_door": {
+    "label": "Techniek — Geluid wordt verzorgd door",
+    "eigenaar": "bureau"
+  },
+  "licht_door": {
+    "label": "Techniek — Licht wordt verzorgd door",
+    "eigenaar": "bureau"
+  },
+  "extras": {
+    "label": "Techniek — Extra's",
+    "eigenaar": "bureau"
+  },
+  "begeleiding": {
+    "label": "Techniek — Playback of live begeleiding",
+    "eigenaar": "bureau"
+  },
+  "podium_maat": {
+    "label": "Techniek — Podiumafmeting",
+    "eigenaar": "bureau"
+  },
+  "speelvlak": {
+    "label": "Techniek — Vrij speelvlak",
+    "eigenaar": "bureau"
+  },
+  "stroom": {
+    "label": "Techniek — Stroomvoorziening",
+    "eigenaar": "bureau"
+  },
+  "veiligheidsafstand": {
+    "label": "Techniek — Veiligheidsafstand publiek",
+    "eigenaar": "bureau"
+  },
+  "kleedruimte": {
+    "label": "Verzorging — Kleedruimte",
+    "eigenaar": "bureau"
+  },
+  "catering": {
+    "label": "Verzorging — Catering en consumpties",
+    "eigenaar": "bureau"
+  },
+  "parkeren": {
+    "label": "Verzorging — Parkeren en laden",
+    "eigenaar": "bureau"
+  },
+  "aantal_rondes": {
+    "label": "Optreden — Aantal rondes of blokken",
+    "eigenaar": "bureau"
+  },
+  "uitloop_tarief": {
+    "label": "Gage — Tarief bij uitloop per uur",
+    "eigenaar": "bureau"
   }
 };
 
@@ -497,6 +563,7 @@ export const SJABLONEN: Sjabloon[] =
 [
   {
     "id": "klant-dj",
+    "soort": "boeking",
     "partij": "klant",
     "type": "dj",
     "titel": "Boekingsovereenkomst DJ",
@@ -702,6 +769,7 @@ export const SJABLONEN: Sjabloon[] =
   },
   {
     "id": "klant-artiest",
+    "soort": "boeking",
     "partij": "klant",
     "type": "artiest",
     "titel": "Boekingsovereenkomst Artiest",
@@ -907,6 +975,7 @@ export const SJABLONEN: Sjabloon[] =
   },
   {
     "id": "klant-band",
+    "soort": "boeking",
     "partij": "klant",
     "type": "band",
     "titel": "Boekingsovereenkomst Band",
@@ -1133,6 +1202,7 @@ export const SJABLONEN: Sjabloon[] =
   },
   {
     "id": "klant-act",
+    "soort": "boeking",
     "partij": "klant",
     "type": "act",
     "titel": "Boekingsovereenkomst Speciale act",
@@ -1342,618 +1412,13 @@ export const SJABLONEN: Sjabloon[] =
     ]
   },
   {
-    "id": "act-dj",
+    "id": "samenwerking",
+    "soort": "samenwerking",
     "partij": "act",
-    "type": "dj",
-    "titel": "Optreedovereenkomst DJ",
-    "ondertitel": "Tussen Bryan de Zwart Bookings en de DJ",
-    "intro": "BDZBookings heeft een optreden geboekt bij een opdrachtgever en schakelt daarvoor de DJ in. BDZBookings en de DJ spreken het volgende af:",
-    "partijen": [
-      {
-        "label": "Boekingskantoor:",
-        "regels": BOEKINGSKANTOOR
-      },
-      {
-        "label": "DJ:",
-        "regels": [
-          "Artiestennaam: {{act_naam}}",
-          "Eigen naam: {{act_eigennaam}}",
-          "Adres: {{act_adres}}",
-          "Postcode en plaats: {{act_plaats}}",
-          "Telefoon: {{act_telefoon}} E-mail: {{act_email}}",
-          "Hierna: “de DJ”;"
-        ]
-      }
-    ],
-    "artikelen": [
-      {
-        "label": "Optreden:",
-        "regels": [
-          "Datum: {{datum}}",
-          "Soort gelegenheid: {{gelegenheid}}",
-          "Opdrachtgever: {{opdrachtgever_naam}}",
-          "Verwacht aantal gasten: {{bezoekers}}  Binnen / buiten: {{binnen_buiten}}"
-        ]
-      },
-      {
-        "label": "Locatie:",
-        "regels": [
-          "Naam locatie: {{locatie_naam}}",
-          "Adres: {{locatie_adres}}",
-          "Postcode en plaats: {{locatie_plaats}}",
-          "Reistijd vanaf huisadres van de act: {{reistijd}} minuten;"
-        ]
-      },
-      {
-        "label": "Tijden:",
-        "regels": [
-          "Aanwezig en opbouw vanaf: {{aankomst}} (minimaal 60 minuten voor aanvang)",
-          "Aanvang: {{start_tijd}}  Einde: {{eind_tijd}}",
-          "Speeltijd in totaal: {{speeltijd_in_totaal}} uur, in {{uur_in}} blok(ken)",
-          "Afbouw direct na het laatste nummer;"
-        ]
-      },
-      {
-        "label": "Wat de DJ verzorgt:",
-        "regels": [
-          "Geluidsinstallatie: door de DJ / huisinstallatie van de locatie (doorhalen wat niet van toepassing is)",
-          "Licht: door de DJ / door de locatie",
-          "Draaigedeelte, laptop, koptelefoon en microfoon brengt de DJ altijd zelf mee;",
-          "Extra's (rookmachine, sfeerverlichting, draadloze microfoon voor speeches): {{sfeerverlichting_draadloze_microfoon_voor_speeches}}",
-          "De DJ heeft een back-up bij zich (tweede laptop, USB-stick of harde schijf met de muziek);"
-        ]
-      },
-      {
-        "label": "Muziek:",
-        "regels": [
-          "Gewenste stijl / sfeer: {{sfeer}}",
-          "De DJ bepaalt de opbouw en de volgorde van de muziek, binnen die stijl;",
-          "BDZBookings levert de wensenlijst en de niet-draaien-lijst uiterlijk 5 dagen vooraf aan;",
-          "De DJ blijft binnen de geluidsnorm van de locatie of de gemeente;"
-        ]
-      },
-      {
-        "label": "Gage:",
-        "regels": [
-          "Gage van de DJ (excl. btw): € {{gage}}",
-          "Reis- en onkostenvergoeding (excl. btw): € {{onkosten}}",
-          "Btw ({{btw_pct}}%): € {{btw}}",
-          "Totaal te ontvangen (incl. btw): € {{totaal}}",
-          "De bemiddelingskosten van BDZBookings (15% over de gage) worden als opslag bij de Opdrachtgever in rekening gebracht. Ze worden dus niet op de gage ingehouden;",
-          "Bij een boeking die BDZBookings inkoopt bij een ander bureau geldt het overeengekomen inkooptarief;"
-        ]
-      },
-      {
-        "label": "Uitbetaling:",
-        "regels": [
-          "a. BDZBookings factureert de Opdrachtgever en int het volledige bedrag;",
-          "b. Uitbetaling vindt plaats in de eerste week van de maand ná het optreden, op rekening {{na_het_optreden_op_rekening}} t.n.v. {{op_rekening_t_n_v}};",
-          "c. Voor de uitbetaling stuurt de act een factuur aan info@bdzbookings.nl, uiterlijk in de laatste week van de maand van het optreden. Heeft de act geen eigen facturatie, dan maakt BDZBookings de factuur namens de act op (self-billing) en stuurt die ter controle mee;",
-          "d. Ontvangt BDZBookings het geld van de Opdrachtgever niet op tijd, dan meldt BDZBookings dat direct en spant BDZBookings zich in om te innen. De uitbetaling schuift dan op tot na ontvangst;"
-        ]
-      },
-      {
-        "label": "Zelfstandigheid en belastingen:",
-        "regels": [
-          "a. De act werkt als zelfstandige en niet in dienst van BDZBookings. Er is geen dienstverband en geen gezagsverhouding;",
-          "b. De act regelt zelf zijn belastingaangifte, verzekeringen en pensioen;",
-          "c. KvK-nummer: {{c_kvk_nummer}}  Btw-nummer: {{btw_nummer}}",
-          "d. Heeft de act geen KvK-inschrijving, dan valt het optreden onder de artiestenregeling van de Belastingdienst. De act levert dan vooraf een ingevulde gageverklaring en een kopie van een geldig identiteitsbewijs aan (rijbewijs volstaat niet);",
-          "e. De act neemt op de dag van het optreden een geldig identiteitsbewijs mee;"
-        ]
-      },
-      {
-        "label": "Niet-exclusief:",
-        "regels": [
-          "a. Deze overeenkomst geldt alleen voor het hierboven genoemde optreden;",
-          "b. De act blijft vrij om zelf boekingen aan te nemen en om bij andere bureaus aangesloten te blijven. BDZBookings werkt niet exclusief;",
-          "c. De act houdt zijn beschikbaarheid in het portaal actueel, zodat BDZBookings weet wanneer er wel of niet geboekt kan worden;"
-        ]
-      },
-      {
-        "label": "Rechtstreeks boeken:",
-        "regels": [
-          "a. Neemt de Opdrachtgever van dit optreden tijdens of na de avond rechtstreeks contact op voor een nieuwe boeking, dan verwijst de act door naar BDZBookings;",
-          "b. Boekt diezelfde Opdrachtgever de act binnen 12 maanden na dit optreden toch rechtstreeks, dan meldt de act dat en is over die boeking alsnog de gebruikelijke bemiddelingsvergoeding van 15% aan BDZBookings verschuldigd;",
-          "c. Dit geldt niet voor opdrachtgevers die de act al vóór deze boeking als klant had. Twijfel je? Meld het even, dan is het zo geregeld;"
-        ]
-      },
-      {
-        "label": "Afspraken op de avond:",
-        "regels": [
-          "a. Afspraken over extra speeltijd, extra kosten of een andere invulling lopen altijd via BDZBookings, ook op de avond zelf;",
-          "b. De act maakt geen prijsafspraken met de Opdrachtgever en deelt geen eigen tarieven;",
-          "c. Bryan de Zwart is de hele avond bereikbaar op 085 060 6460;"
-        ]
-      },
-      {
-        "label": "Afzeggen door de DJ:",
-        "regels": [
-          "a. Kan de act door ziekte, ongeval of een andere onvoorziene reden niet komen, dan belt de act BDZBookings direct — niet appen en niet wachten;",
-          "b. De act denkt mee over een geschikte vervanger van vergelijkbaar niveau. BDZBookings bepaalt in overleg met de Opdrachtgever of die vervanger doorgaat;",
-          "c. Zegt de act af zonder geldige reden of komt de act niet opdagen, dan is de act aansprakelijk voor de schade van BDZBookings, waaronder de kosten van een vervangende act en de misgelopen bemiddelingsvergoeding;",
-          "d. Een dubbele boeking of een beter betaald optreden is geen geldige reden;"
-        ]
-      },
-      {
-        "label": "Afzeggen door de Opdrachtgever:",
-        "regels": [
-          "a. Zegt de Opdrachtgever de boeking af, dan meldt BDZBookings dit zo snel mogelijk;",
-          "b. BDZBookings brengt de Opdrachtgever een annuleringsvergoeding in rekening (25% tot 100%, afhankelijk van hoe laat er wordt afgezegd);",
-          "c. Van wat BDZBookings daadwerkelijk ontvangt, gaat het deel dat op de gage van de act ziet naar de act. De verhouding is dezelfde als bij een normaal optreden;",
-          "d. Al gemaakte, aantoonbare kosten van de act worden volledig vergoed;"
-        ]
-      },
-      {
-        "label": "Overmacht:",
-        "regels": [
-          "a. Bij overmacht (extreem weer, overheidsmaatregelen, een afgelast evenement, brand of stroomuitval op de locatie) zoeken partijen samen naar een nieuwe datum binnen 12 maanden, onder dezelfde voorwaarden;",
-          "b. Komt er geen nieuwe datum, dan draagt ieder de eigen kosten;"
-        ]
-      },
-      {
-        "label": "Veiligheid en gedrag:",
-        "regels": [
-          "a. De act is verzekerd voor zijn eigen apparatuur en beschikt over een bedrijfsaansprakelijkheidsverzekering;",
-          "b. De act mag stoppen als de situatie onveilig is (agressie, gedrang, een onveilig podium of onveilige stroom) en meldt dat direct bij BDZBookings. De gage blijft in dat geval gewoon verschuldigd;",
-          "c. De act komt nuchter en uitgerust aan, blijft tijdens het optreden nuchter en drinkt hooguit met mate na afloop;",
-          "d. De act gaat netjes om met de locatie en het publiek en laat de opstelplek schoon achter;"
-        ]
-      },
-      {
-        "label": "Promotie en materialen:",
-        "regels": [
-          "a. De act levert BDZBookings foto's, logo, een korte biografie, promotievideo en de technische wensen aan en houdt die actueel;",
-          "b. BDZBookings mag deze materialen, de naam en het portret van de act gebruiken op bdzbookings.nl, in offertes en op de social media van BDZBookings, zolang de samenwerking loopt;",
-          "c. BDZBookings mag foto's en korte video's van het optreden gebruiken voor eigen promotie, tenzij de act daar vooraf bezwaar tegen maakt;"
-        ]
-      },
-      {
-        "label": "Het portaal:",
-        "regels": [
-          "a. De act krijgt toegang tot het BDZBookings-portaal via een persoonlijke inloglink;",
-          "b. In het portaal staan de bevestigde boekingen, de tijden, de locatie en het overzicht van de uitbetalingen;",
-          "c. De act houdt daar zijn eigen niet-beschikbare dagen bij (vakantie, andere boekingen);",
-          "d. BDZBookings neemt altijd eerst persoonlijk contact op om de beschikbaarheid te checken voordat er iets wordt vastgelegd;",
-          "e. De act gaat zorgvuldig om met de gegevens van opdrachtgevers en deelt die niet met anderen;"
-        ]
-      },
-      {
-        "label": "Slotafspraken:",
-        "regels": [
-          "a. Deze overeenkomst vervangt alle eerdere afspraken over dit optreden;",
-          "b. Wijzigingen gelden alleen als ze schriftelijk of per e-mail zijn bevestigd;",
-          "c. Is een bepaling niet geldig, dan blijft de rest gewoon gelden;",
-          "d. Op deze overeenkomst is Nederlands recht van toepassing;",
-          "e. Geschillen worden voorgelegd aan de bevoegde rechter in het arrondissement waar BDZBookings kantoor houdt;",
-          "f. Is deze overeenkomst niet binnen 7 dagen ondertekend retour, dan mag BDZBookings de boeking aan een andere act aanbieden;"
-        ]
-      },
-      {
-        "label": "Aanvullende afspraken:",
-        "regels": [
-          "{{aanvullende_afspraken}}",
-          "{{aanvullende_afspraken_2}}",
-          "{{aanvullende_afspraken_3}}"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "act-artiest",
-    "partij": "act",
-    "type": "artiest",
-    "titel": "Optreedovereenkomst Artiest",
-    "ondertitel": "Tussen Bryan de Zwart Bookings en de artiest",
-    "intro": "BDZBookings heeft een optreden geboekt bij een opdrachtgever en schakelt daarvoor de Artiest in. BDZBookings en de Artiest spreken het volgende af:",
-    "partijen": [
-      {
-        "label": "Boekingskantoor:",
-        "regels": BOEKINGSKANTOOR
-      },
-      {
-        "label": "Artiest:",
-        "regels": [
-          "Artiestennaam: {{act_naam}}",
-          "Eigen naam: {{act_eigennaam}}",
-          "Adres: {{act_adres}}",
-          "Postcode en plaats: {{act_plaats}}",
-          "Telefoon: {{act_telefoon}} E-mail: {{act_email}}",
-          "Aantal personen dat meekomt (artiest, technicus, begeleiding): {{artiest_technicus_begeleiding}}",
-          "Hierna: “de Artiest”;"
-        ]
-      }
-    ],
-    "artikelen": [
-      {
-        "label": "Optreden:",
-        "regels": [
-          "Datum: {{datum}}",
-          "Soort gelegenheid: {{gelegenheid}}",
-          "Opdrachtgever: {{opdrachtgever_naam}}",
-          "Verwacht aantal gasten: {{bezoekers}}  Binnen / buiten: {{binnen_buiten}}"
-        ]
-      },
-      {
-        "label": "Locatie:",
-        "regels": [
-          "Naam locatie: {{locatie_naam}}",
-          "Adres: {{locatie_adres}}",
-          "Postcode en plaats: {{locatie_plaats}}",
-          "Reistijd vanaf huisadres van de act: {{reistijd}} minuten;"
-        ]
-      },
-      {
-        "label": "Tijden:",
-        "regels": [
-          "Aanwezig vanaf: {{aankomst}} (minimaal 45 minuten voor aanvang)",
-          "Geluidscheck: {{geluidscheck}}",
-          "Optreden: {{optreden}} set(s) van {{van}} minuten",
-          "Aanvang eerste set: {{start_tijd}}  Einde laatste set: {{eind_tijd}}"
-        ]
-      },
-      {
-        "label": "Wat de Artiest verzorgt:",
-        "regels": [
-          "Eigen geluidsinstallatie: ja / nee (doorhalen wat niet van toepassing is)",
-          "Eigen technicus: ja / nee",
-          "Eigen instrumenten, microfoon en muziekbestanden of backing tracks;",
-          "De Artiest heeft de tracks in tweevoud bij zich (back-up);",
-          "Overig: {{overig}}"
-        ]
-      },
-      {
-        "label": "Programma:",
-        "regels": [
-          "Repertoire en volgorde bepaalt de Artiest;",
-          "Openingsdans / speciaal moment: {{speciaal_moment}}",
-          "De Artiest treedt niet op dezelfde avond binnen {{niet_op_dezelfde_avond_binnen}} km nog ergens anders op, tenzij dit vooraf is gemeld en akkoord bevonden;",
-          "De Artiest blijft binnen de geluidsnorm van de locatie of de gemeente;"
-        ]
-      },
-      {
-        "label": "Gage:",
-        "regels": [
-          "Gage van de Artiest (excl. btw): € {{gage}}",
-          "Reis- en onkostenvergoeding (excl. btw): € {{onkosten}}",
-          "Btw ({{btw_pct}}%): € {{btw}}",
-          "Totaal te ontvangen (incl. btw): € {{totaal}}",
-          "De bemiddelingskosten van BDZBookings (15% over de gage) worden als opslag bij de Opdrachtgever in rekening gebracht. Ze worden dus niet op de gage ingehouden;",
-          "Bij een boeking die BDZBookings inkoopt bij een ander bureau geldt het overeengekomen inkooptarief;"
-        ]
-      },
-      {
-        "label": "Uitbetaling:",
-        "regels": [
-          "a. BDZBookings factureert de Opdrachtgever en int het volledige bedrag;",
-          "b. Uitbetaling vindt plaats in de eerste week van de maand ná het optreden, op rekening {{na_het_optreden_op_rekening}} t.n.v. {{op_rekening_t_n_v}};",
-          "c. Voor de uitbetaling stuurt de act een factuur aan info@bdzbookings.nl, uiterlijk in de laatste week van de maand van het optreden. Heeft de act geen eigen facturatie, dan maakt BDZBookings de factuur namens de act op (self-billing) en stuurt die ter controle mee;",
-          "d. Ontvangt BDZBookings het geld van de Opdrachtgever niet op tijd, dan meldt BDZBookings dat direct en spant BDZBookings zich in om te innen. De uitbetaling schuift dan op tot na ontvangst;"
-        ]
-      },
-      {
-        "label": "Zelfstandigheid en belastingen:",
-        "regels": [
-          "a. De act werkt als zelfstandige en niet in dienst van BDZBookings. Er is geen dienstverband en geen gezagsverhouding;",
-          "b. De act regelt zelf zijn belastingaangifte, verzekeringen en pensioen;",
-          "c. KvK-nummer: {{c_kvk_nummer}}  Btw-nummer: {{btw_nummer}}",
-          "d. Heeft de act geen KvK-inschrijving, dan valt het optreden onder de artiestenregeling van de Belastingdienst. De act levert dan vooraf een ingevulde gageverklaring en een kopie van een geldig identiteitsbewijs aan (rijbewijs volstaat niet);",
-          "e. De act neemt op de dag van het optreden een geldig identiteitsbewijs mee;"
-        ]
-      },
-      {
-        "label": "Niet-exclusief:",
-        "regels": [
-          "a. Deze overeenkomst geldt alleen voor het hierboven genoemde optreden;",
-          "b. De act blijft vrij om zelf boekingen aan te nemen en om bij andere bureaus aangesloten te blijven. BDZBookings werkt niet exclusief;",
-          "c. De act houdt zijn beschikbaarheid in het portaal actueel, zodat BDZBookings weet wanneer er wel of niet geboekt kan worden;"
-        ]
-      },
-      {
-        "label": "Rechtstreeks boeken:",
-        "regels": [
-          "a. Neemt de Opdrachtgever van dit optreden tijdens of na de avond rechtstreeks contact op voor een nieuwe boeking, dan verwijst de act door naar BDZBookings;",
-          "b. Boekt diezelfde Opdrachtgever de act binnen 12 maanden na dit optreden toch rechtstreeks, dan meldt de act dat en is over die boeking alsnog de gebruikelijke bemiddelingsvergoeding van 15% aan BDZBookings verschuldigd;",
-          "c. Dit geldt niet voor opdrachtgevers die de act al vóór deze boeking als klant had. Twijfel je? Meld het even, dan is het zo geregeld;"
-        ]
-      },
-      {
-        "label": "Afspraken op de avond:",
-        "regels": [
-          "a. Afspraken over extra speeltijd, extra kosten of een andere invulling lopen altijd via BDZBookings, ook op de avond zelf;",
-          "b. De act maakt geen prijsafspraken met de Opdrachtgever en deelt geen eigen tarieven;",
-          "c. Bryan de Zwart is de hele avond bereikbaar op 085 060 6460;"
-        ]
-      },
-      {
-        "label": "Afzeggen door de Artiest:",
-        "regels": [
-          "a. Kan de act door ziekte, ongeval of een andere onvoorziene reden niet komen, dan belt de act BDZBookings direct — niet appen en niet wachten;",
-          "b. De act denkt mee over een geschikte vervanger van vergelijkbaar niveau. BDZBookings bepaalt in overleg met de Opdrachtgever of die vervanger doorgaat;",
-          "c. Zegt de act af zonder geldige reden of komt de act niet opdagen, dan is de act aansprakelijk voor de schade van BDZBookings, waaronder de kosten van een vervangende act en de misgelopen bemiddelingsvergoeding;",
-          "d. Een dubbele boeking of een beter betaald optreden is geen geldige reden;"
-        ]
-      },
-      {
-        "label": "Afzeggen door de Opdrachtgever:",
-        "regels": [
-          "a. Zegt de Opdrachtgever de boeking af, dan meldt BDZBookings dit zo snel mogelijk;",
-          "b. BDZBookings brengt de Opdrachtgever een annuleringsvergoeding in rekening (25% tot 100%, afhankelijk van hoe laat er wordt afgezegd);",
-          "c. Van wat BDZBookings daadwerkelijk ontvangt, gaat het deel dat op de gage van de act ziet naar de act. De verhouding is dezelfde als bij een normaal optreden;",
-          "d. Al gemaakte, aantoonbare kosten van de act worden volledig vergoed;"
-        ]
-      },
-      {
-        "label": "Overmacht:",
-        "regels": [
-          "a. Bij overmacht (extreem weer, overheidsmaatregelen, een afgelast evenement, brand of stroomuitval op de locatie) zoeken partijen samen naar een nieuwe datum binnen 12 maanden, onder dezelfde voorwaarden;",
-          "b. Komt er geen nieuwe datum, dan draagt ieder de eigen kosten;"
-        ]
-      },
-      {
-        "label": "Veiligheid en gedrag:",
-        "regels": [
-          "a. De act is verzekerd voor zijn eigen apparatuur en beschikt over een bedrijfsaansprakelijkheidsverzekering;",
-          "b. De act mag stoppen als de situatie onveilig is (agressie, gedrang, een onveilig podium of onveilige stroom) en meldt dat direct bij BDZBookings. De gage blijft in dat geval gewoon verschuldigd;",
-          "c. De act komt nuchter en uitgerust aan, blijft tijdens het optreden nuchter en drinkt hooguit met mate na afloop;",
-          "d. De act gaat netjes om met de locatie en het publiek en laat de opstelplek schoon achter;"
-        ]
-      },
-      {
-        "label": "Promotie en materialen:",
-        "regels": [
-          "a. De act levert BDZBookings foto's, logo, een korte biografie, promotievideo en de technische wensen aan en houdt die actueel;",
-          "b. BDZBookings mag deze materialen, de naam en het portret van de act gebruiken op bdzbookings.nl, in offertes en op de social media van BDZBookings, zolang de samenwerking loopt;",
-          "c. BDZBookings mag foto's en korte video's van het optreden gebruiken voor eigen promotie, tenzij de act daar vooraf bezwaar tegen maakt;"
-        ]
-      },
-      {
-        "label": "Het portaal:",
-        "regels": [
-          "a. De act krijgt toegang tot het BDZBookings-portaal via een persoonlijke inloglink;",
-          "b. In het portaal staan de bevestigde boekingen, de tijden, de locatie en het overzicht van de uitbetalingen;",
-          "c. De act houdt daar zijn eigen niet-beschikbare dagen bij (vakantie, andere boekingen);",
-          "d. BDZBookings neemt altijd eerst persoonlijk contact op om de beschikbaarheid te checken voordat er iets wordt vastgelegd;",
-          "e. De act gaat zorgvuldig om met de gegevens van opdrachtgevers en deelt die niet met anderen;"
-        ]
-      },
-      {
-        "label": "Slotafspraken:",
-        "regels": [
-          "a. Deze overeenkomst vervangt alle eerdere afspraken over dit optreden;",
-          "b. Wijzigingen gelden alleen als ze schriftelijk of per e-mail zijn bevestigd;",
-          "c. Is een bepaling niet geldig, dan blijft de rest gewoon gelden;",
-          "d. Op deze overeenkomst is Nederlands recht van toepassing;",
-          "e. Geschillen worden voorgelegd aan de bevoegde rechter in het arrondissement waar BDZBookings kantoor houdt;",
-          "f. Is deze overeenkomst niet binnen 7 dagen ondertekend retour, dan mag BDZBookings de boeking aan een andere act aanbieden;"
-        ]
-      },
-      {
-        "label": "Aanvullende afspraken:",
-        "regels": [
-          "{{aanvullende_afspraken}}",
-          "{{aanvullende_afspraken_2}}",
-          "{{aanvullende_afspraken_3}}"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "act-band",
-    "partij": "act",
-    "type": "band",
-    "titel": "Optreedovereenkomst Band",
-    "ondertitel": "Tussen Bryan de Zwart Bookings en de band",
-    "intro": "BDZBookings heeft een optreden geboekt bij een opdrachtgever en schakelt daarvoor de Band in. BDZBookings en de Band spreken het volgende af:",
-    "partijen": [
-      {
-        "label": "Boekingskantoor:",
-        "regels": BOEKINGSKANTOOR
-      },
-      {
-        "label": "Band:",
-        "regels": [
-          "Naam band: {{act_naam}}",
-          "Contactpersoon: {{act_contact}}",
-          "Adres contactpersoon: {{adres_contactpersoon}}",
-          "E-mail: {{e_mail}}",
-          "Aantal bandleden: {{aantal_bandleden}}  Aantal crew: {{aantal_crew}}  Totaal aanwezig: {{totaal_aanwezig}}",
-          "De contactpersoon tekent namens alle bandleden;",
-          "Hierna: “de Band”;"
-        ]
-      }
-    ],
-    "artikelen": [
-      {
-        "label": "Optreden:",
-        "regels": [
-          "Datum: {{datum}}",
-          "Soort gelegenheid: {{gelegenheid}}",
-          "Opdrachtgever: {{opdrachtgever_naam}}",
-          "Verwacht aantal gasten: {{bezoekers}}  Binnen / buiten: {{binnen_buiten}}"
-        ]
-      },
-      {
-        "label": "Locatie:",
-        "regels": [
-          "Naam locatie: {{locatie_naam}}",
-          "Adres: {{locatie_adres}}",
-          "Postcode en plaats: {{locatie_plaats}}",
-          "Reistijd vanaf huisadres van de act: {{reistijd}} minuten;"
-        ]
-      },
-      {
-        "label": "Tijden:",
-        "regels": [
-          "Aankomst en inladen: {{aankomst_en_inladen}}",
-          "Opbouw geluid en licht: {{opbouw_geluid_en_licht}}",
-          "Geluidscheck: {{geluidscheck}}",
-          "Eten: {{eten}}",
-          "Optreden: {{optreden}} set(s) van {{van}} minuten, van {{van_minuten_van}} tot {{van_minuten_van_tot}}",
-          "Uitladen: direct na het optreden;"
-        ]
-      },
-      {
-        "label": "Wat de Band verzorgt:",
-        "regels": [
-          "Geluidsinstallatie: door de Band / door de Opdrachtgever (doorhalen wat niet van toepassing is)",
-          "Licht: door de Band / door de Opdrachtgever",
-          "Eigen geluidstechnicus: ja / nee",
-          "Eigen backline en instrumenten;",
-          "De Band levert de technische rider en de podiumtekening uiterlijk 21 dagen vóór het optreden bij BDZBookings aan, zodat BDZBookings dit met de Opdrachtgever kan afstemmen;",
-          "Wensen voor kleedkamer en catering: {{wensen_voor_kleedkamer_en_catering}}"
-        ]
-      },
-      {
-        "label": "Bezetting:",
-        "regels": [
-          "a. De Band treedt op in de bezetting die de Opdrachtgever is voorgespiegeld;",
-          "b. Valt een bandlid uit, dan zorgt de Band zelf voor een invaller van vergelijkbaar niveau en meldt dit vooraf bij BDZBookings;",
-          "c. Optreden in een kleinere bezetting mag alleen na overleg met BDZBookings;",
-          "d. Repertoire, volgorde en volume bepaalt de Band, binnen de afgesproken stijl en binnen de geluidsnorm van de locatie of de gemeente;"
-        ]
-      },
-      {
-        "label": "Merchandise:",
-        "regels": [
-          "De Band mag eigen merchandise verkopen. De opbrengst is volledig voor de Band. BDZBookings regelt vooraf met de Opdrachtgever dat daar een plek voor is;"
-        ]
-      },
-      {
-        "label": "Gage:",
-        "regels": [
-          "Gage van de Band (excl. btw): € {{gage}}",
-          "Reis- en onkostenvergoeding (excl. btw): € {{onkosten}}",
-          "Btw ({{btw_pct}}%): € {{btw}}",
-          "Totaal te ontvangen (incl. btw): € {{totaal}}",
-          "De bemiddelingskosten van BDZBookings (15% over de gage) worden als opslag bij de Opdrachtgever in rekening gebracht. Ze worden dus niet op de gage ingehouden;",
-          "Bij een boeking die BDZBookings inkoopt bij een ander bureau geldt het overeengekomen inkooptarief;"
-        ]
-      },
-      {
-        "label": "Uitbetaling:",
-        "regels": [
-          "a. BDZBookings factureert de Opdrachtgever en int het volledige bedrag;",
-          "b. Uitbetaling vindt plaats in de eerste week van de maand ná het optreden, op rekening {{na_het_optreden_op_rekening}} t.n.v. {{op_rekening_t_n_v}};",
-          "c. Voor de uitbetaling stuurt de act een factuur aan info@bdzbookings.nl, uiterlijk in de laatste week van de maand van het optreden. Heeft de act geen eigen facturatie, dan maakt BDZBookings de factuur namens de act op (self-billing) en stuurt die ter controle mee;",
-          "d. Ontvangt BDZBookings het geld van de Opdrachtgever niet op tijd, dan meldt BDZBookings dat direct en spant BDZBookings zich in om te innen. De uitbetaling schuift dan op tot na ontvangst;",
-          "e. BDZBookings betaalt uit aan de Band als geheel, op één rekening. De verdeling onder de bandleden regelt de Band zelf;"
-        ]
-      },
-      {
-        "label": "Zelfstandigheid en belastingen:",
-        "regels": [
-          "a. De act werkt als zelfstandige en niet in dienst van BDZBookings. Er is geen dienstverband en geen gezagsverhouding;",
-          "b. De act regelt zelf zijn belastingaangifte, verzekeringen en pensioen;",
-          "c. KvK-nummer: {{c_kvk_nummer}}  Btw-nummer: {{btw_nummer}}",
-          "d. Heeft de act geen KvK-inschrijving, dan valt het optreden onder de artiestenregeling van de Belastingdienst. De act levert dan vooraf een ingevulde gageverklaring en een kopie van een geldig identiteitsbewijs aan (rijbewijs volstaat niet);",
-          "e. De act neemt op de dag van het optreden een geldig identiteitsbewijs mee;"
-        ]
-      },
-      {
-        "label": "Niet-exclusief:",
-        "regels": [
-          "a. Deze overeenkomst geldt alleen voor het hierboven genoemde optreden;",
-          "b. De act blijft vrij om zelf boekingen aan te nemen en om bij andere bureaus aangesloten te blijven. BDZBookings werkt niet exclusief;",
-          "c. De act houdt zijn beschikbaarheid in het portaal actueel, zodat BDZBookings weet wanneer er wel of niet geboekt kan worden;"
-        ]
-      },
-      {
-        "label": "Rechtstreeks boeken:",
-        "regels": [
-          "a. Neemt de Opdrachtgever van dit optreden tijdens of na de avond rechtstreeks contact op voor een nieuwe boeking, dan verwijst de act door naar BDZBookings;",
-          "b. Boekt diezelfde Opdrachtgever de act binnen 12 maanden na dit optreden toch rechtstreeks, dan meldt de act dat en is over die boeking alsnog de gebruikelijke bemiddelingsvergoeding van 15% aan BDZBookings verschuldigd;",
-          "c. Dit geldt niet voor opdrachtgevers die de act al vóór deze boeking als klant had. Twijfel je? Meld het even, dan is het zo geregeld;"
-        ]
-      },
-      {
-        "label": "Afspraken op de avond:",
-        "regels": [
-          "a. Afspraken over extra speeltijd, extra kosten of een andere invulling lopen altijd via BDZBookings, ook op de avond zelf;",
-          "b. De act maakt geen prijsafspraken met de Opdrachtgever en deelt geen eigen tarieven;",
-          "c. Bryan de Zwart is de hele avond bereikbaar op 085 060 6460;"
-        ]
-      },
-      {
-        "label": "Afzeggen door de Band:",
-        "regels": [
-          "a. Kan de act door ziekte, ongeval of een andere onvoorziene reden niet komen, dan belt de act BDZBookings direct — niet appen en niet wachten;",
-          "b. De act denkt mee over een geschikte vervanger van vergelijkbaar niveau. BDZBookings bepaalt in overleg met de Opdrachtgever of die vervanger doorgaat;",
-          "c. Zegt de act af zonder geldige reden of komt de act niet opdagen, dan is de act aansprakelijk voor de schade van BDZBookings, waaronder de kosten van een vervangende act en de misgelopen bemiddelingsvergoeding;",
-          "d. Een dubbele boeking of een beter betaald optreden is geen geldige reden;"
-        ]
-      },
-      {
-        "label": "Afzeggen door de Opdrachtgever:",
-        "regels": [
-          "a. Zegt de Opdrachtgever de boeking af, dan meldt BDZBookings dit zo snel mogelijk;",
-          "b. BDZBookings brengt de Opdrachtgever een annuleringsvergoeding in rekening (25% tot 100%, afhankelijk van hoe laat er wordt afgezegd);",
-          "c. Van wat BDZBookings daadwerkelijk ontvangt, gaat het deel dat op de gage van de act ziet naar de act. De verhouding is dezelfde als bij een normaal optreden;",
-          "d. Al gemaakte, aantoonbare kosten van de act worden volledig vergoed;"
-        ]
-      },
-      {
-        "label": "Overmacht:",
-        "regels": [
-          "a. Bij overmacht (extreem weer, overheidsmaatregelen, een afgelast evenement, brand of stroomuitval op de locatie) zoeken partijen samen naar een nieuwe datum binnen 12 maanden, onder dezelfde voorwaarden;",
-          "b. Komt er geen nieuwe datum, dan draagt ieder de eigen kosten;"
-        ]
-      },
-      {
-        "label": "Veiligheid en gedrag:",
-        "regels": [
-          "a. De act is verzekerd voor zijn eigen apparatuur en beschikt over een bedrijfsaansprakelijkheidsverzekering;",
-          "b. De act mag stoppen als de situatie onveilig is (agressie, gedrang, een onveilig podium of onveilige stroom) en meldt dat direct bij BDZBookings. De gage blijft in dat geval gewoon verschuldigd;",
-          "c. De act komt nuchter en uitgerust aan, blijft tijdens het optreden nuchter en drinkt hooguit met mate na afloop;",
-          "d. De act gaat netjes om met de locatie en het publiek en laat de opstelplek schoon achter;"
-        ]
-      },
-      {
-        "label": "Promotie en materialen:",
-        "regels": [
-          "a. De act levert BDZBookings foto's, logo, een korte biografie, promotievideo en de technische wensen aan en houdt die actueel;",
-          "b. BDZBookings mag deze materialen, de naam en het portret van de act gebruiken op bdzbookings.nl, in offertes en op de social media van BDZBookings, zolang de samenwerking loopt;",
-          "c. BDZBookings mag foto's en korte video's van het optreden gebruiken voor eigen promotie, tenzij de act daar vooraf bezwaar tegen maakt;"
-        ]
-      },
-      {
-        "label": "Het portaal:",
-        "regels": [
-          "a. De act krijgt toegang tot het BDZBookings-portaal via een persoonlijke inloglink;",
-          "b. In het portaal staan de bevestigde boekingen, de tijden, de locatie en het overzicht van de uitbetalingen;",
-          "c. De act houdt daar zijn eigen niet-beschikbare dagen bij (vakantie, andere boekingen);",
-          "d. BDZBookings neemt altijd eerst persoonlijk contact op om de beschikbaarheid te checken voordat er iets wordt vastgelegd;",
-          "e. De act gaat zorgvuldig om met de gegevens van opdrachtgevers en deelt die niet met anderen;"
-        ]
-      },
-      {
-        "label": "Slotafspraken:",
-        "regels": [
-          "a. Deze overeenkomst vervangt alle eerdere afspraken over dit optreden;",
-          "b. Wijzigingen gelden alleen als ze schriftelijk of per e-mail zijn bevestigd;",
-          "c. Is een bepaling niet geldig, dan blijft de rest gewoon gelden;",
-          "d. Op deze overeenkomst is Nederlands recht van toepassing;",
-          "e. Geschillen worden voorgelegd aan de bevoegde rechter in het arrondissement waar BDZBookings kantoor houdt;",
-          "f. Is deze overeenkomst niet binnen 7 dagen ondertekend retour, dan mag BDZBookings de boeking aan een andere act aanbieden;"
-        ]
-      },
-      {
-        "label": "Aanvullende afspraken:",
-        "regels": [
-          "{{aanvullende_afspraken}}",
-          "{{aanvullende_afspraken_2}}",
-          "{{aanvullende_afspraken_3}}"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "act-act",
-    "partij": "act",
-    "type": "act",
-    "titel": "Optreedovereenkomst Speciale act",
-    "ondertitel": "Tussen Bryan de Zwart Bookings en de act — voor goochelaars, vuurspuwers, steltenlopers, Sint & Piet(en), entertainers en vergelijkbare acts",
-    "intro": "BDZBookings heeft een optreden geboekt bij een opdrachtgever en schakelt daarvoor de Act in. BDZBookings en de Act spreken het volgende af:",
+    "type": null,
+    "titel": "Samenwerkingsovereenkomst",
+    "ondertitel": "Tussen Bryan de Zwart Bookings en de act",
+    "intro": "Deze overeenkomst legt de vaste afspraken vast tussen BDZBookings en de act en geldt voor onbepaalde tijd. Per optreden volgt alleen nog een korte aftekenlijst met de datum, de tijden, de locatie en de gage. Wat hieronder staat, geldt bij elk optreden dat via BDZBookings loopt.",
     "partijen": [
       {
         "label": "Boekingskantoor:",
@@ -1962,103 +1427,61 @@ export const SJABLONEN: Sjabloon[] =
       {
         "label": "Act:",
         "regels": [
-          "Naam act: {{act_naam}}",
+          "Artiestennaam: {{act_naam}}",
+          "Eigen naam: {{act_eigennaam}}",
           "Soort act: {{act_soort}}",
-          "Contactpersoon: {{act_contact}}",
           "Adres: {{act_adres}}",
-          "E-mail: {{e_mail}}",
-          "Aantal personen dat meekomt: {{aantal_personen_dat_meekomt}}",
-          "Hierna: “de Act”;"
+          "Postcode en plaats: {{act_plaats}}",
+          "Telefoon: {{act_telefoon}} E-mail: {{act_email}}",
+          "Hierna: \u201cde act\u201d;"
         ]
       }
     ],
     "artikelen": [
       {
-        "label": "Optreden:",
+        "label": "Wat we afspreken:",
         "regels": [
-          "Datum: {{datum}}",
-          "Soort gelegenheid: {{gelegenheid}}",
-          "Opdrachtgever: {{opdrachtgever_naam}}",
-          "Verwacht aantal gasten: {{bezoekers}}  Binnen / buiten: {{binnen_buiten}}"
+          "a. BDZBookings bemiddelt bij optredens voor de act, regelt de afspraken met de opdrachtgever, de bevestiging en de betaling;",
+          "b. Deze overeenkomst gaat in op {{ingangsdatum}} en geldt voor onbepaalde tijd;",
+          "c. Per optreden bevestigt de act een aftekenlijst in het portaal, met de datum, de tijden, de locatie, de gage en de afspraken over techniek. Die aftekenlijst hoort bij deze overeenkomst;",
+          "d. Wat in deze overeenkomst staat, geldt bij elk optreden. Alleen als op de aftekenlijst uitdrukkelijk iets anders staat, gaat die afspraak voor;"
         ]
       },
       {
-        "label": "Locatie:",
+        "label": "Niet-exclusief:",
         "regels": [
-          "Naam locatie: {{locatie_naam}}",
-          "Adres: {{locatie_adres}}",
-          "Postcode en plaats: {{locatie_plaats}}",
-          "Reistijd vanaf huisadres van de act: {{reistijd}} minuten;"
+          "a. De act blijft vrij om zelf boekingen aan te nemen en om bij andere bureaus aangesloten te blijven. BDZBookings werkt niet exclusief;",
+          "b. De act is nooit verplicht een aangeboden optreden aan te nemen, om welke reden dan ook;",
+          "c. BDZBookings is niet verplicht een minimum aantal optredens te leveren;",
+          "d. De act houdt zijn beschikbaarheid in het portaal actueel, zodat BDZBookings weet wanneer er wel of niet geboekt kan worden;"
         ]
       },
       {
-        "label": "Wat de Act doet:",
+        "label": "Hoe een boeking tot stand komt:",
         "regels": [
-          "Vorm: doorlopend rondlopend / vaste show / combinatie (doorhalen wat niet van toepassing is)",
-          "Aantal blokken: {{aantal_blokken}} blok(ken) van {{van}} minuten",
-          "Aanwezig vanaf: {{aanwezig_vanaf}}  Start eerste blok: {{start_eerste_blok}}  Einde: {{einde}}",
-          "Korte omschrijving: {{korte_omschrijving}}",
-          "De Act bepaalt zelf de inhoud en de opbouw van de show;",
-          "Leeftijd publiek: {{leeftijd_publiek}} (bijv. kinderfeest, gemengd, alleen volwassenen)"
+          "a. BDZBookings neemt eerst persoonlijk contact op om de beschikbaarheid te checken;",
+          "b. Pas daarna stuurt BDZBookings de aftekenlijst via het portaal;",
+          "c. De boeking staat vast zodra de act die aftekenlijst heeft afgetekend;",
+          "d. Tekent de act niet binnen 7 dagen af, dan mag BDZBookings het optreden aan een andere act aanbieden;"
         ]
       },
       {
-        "label": "Wat de Act meebrengt:",
+        "label": "Gage en bemiddelingsvergoeding:",
         "regels": [
-          "Eigen materiaal, kostuum en rekwisieten;",
-          "Eigen geluid: ja / nee (doorhalen wat niet van toepassing is)",
-          "Benodigde ruimte: {{benodigde_ruimte}} x {{de_act_meebrengt}} meter, vrije hoogte {{x_meter_vrije_hoogte}} meter;",
-          "Benodigde stroom: {{benodigde_stroom}} geaarde groep(en) van 230V / 16A;",
-          "De Act geeft deze eisen uiterlijk 14 dagen vooraf door aan BDZBookings, zodat BDZBookings ze met de Opdrachtgever kan afstemmen;"
-        ]
-      },
-      {
-        "label": "Vuur en open vlam:",
-        "regels": [
-          "Dit artikel geldt alleen als de Act met vuur, vuurwerk of open vlam werkt.",
-          "a. De Act werkt met eigen, goedgekeurde brandstof en materialen en volgens de eigen veiligheidsprocedure;",
-          "b. De Act heeft een aansprakelijkheidsverzekering die vuuracts uitdrukkelijk meeverzekert en stuurt op verzoek een kopie van het polisblad aan BDZBookings;",
-          "c. De Act geeft vooraf schriftelijk door welke veiligheidszone nodig is (minimaal 5 meter rondom en 5 meter vrije hoogte) en wat de Opdrachtgever moet regelen, zodat BDZBookings dat kan doorgeven;",
-          "d. De Act controleert bij aankomst de situatie en beslist zelf of de vuuract veilig kan doorgaan;",
-          "e. Is het niet veilig (harde wind, regen, brandbare versiering, te weinig ruimte, geen toestemming van de locatie), dan vervalt het vuuronderdeel. De Act biedt dan zo mogelijk een alternatief; de gage blijft volledig verschuldigd;",
-          "f. De Act gebruikt geen alcohol vóór of tijdens het optreden;"
-        ]
-      },
-      {
-        "label": "Acts met kinderen:",
-        "regels": [
-          "a. Werkt de Act met kinderen, dan is er altijd een volwassene van de Opdrachtgever bij; de Act neemt het toezicht niet over;",
-          "b. BDZBookings kan om een geldige Verklaring Omtrent het Gedrag (VOG) vragen. De Act levert die dan aan;",
-          "c. De Act gaat niet één op één alleen met een kind een afgesloten ruimte in;"
-        ]
-      },
-      {
-        "label": "Acts voor volwassenen:",
-        "regels": [
-          "Dit artikel geldt alleen bij acts die uitsluitend voor volwassenen bedoeld zijn.",
-          "a. De Act treedt alleen op in een besloten ruimte zonder publiek onder de 18 jaar;",
-          "b. De Act geeft vooraf duidelijk aan wat wel en niet mag; BDZBookings legt dit vast bij de Opdrachtgever;",
-          "c. Bij ongewenst gedrag stopt de Act direct en blijft de gage volledig verschuldigd;"
-        ]
-      },
-      {
-        "label": "Gage:",
-        "regels": [
-          "Gage van de Act (excl. btw): € {{gage}}",
-          "Reis- en onkostenvergoeding (excl. btw): € {{onkosten}}",
-          "Btw ({{btw_pct}}%): € {{btw}}",
-          "Totaal te ontvangen (incl. btw): € {{totaal}}",
-          "De bemiddelingskosten van BDZBookings (15% over de gage) worden als opslag bij de Opdrachtgever in rekening gebracht. Ze worden dus niet op de gage ingehouden;",
-          "Bij een boeking die BDZBookings inkoopt bij een ander bureau geldt het overeengekomen inkooptarief;"
+          "a. Per optreden spreken partijen vooraf een gage af. Die staat op de aftekenlijst;",
+          "b. De act ontvangt zijn volledige gage. De bemiddelingsvergoeding van BDZBookings (15% over de kale gage) wordt als opslag bij de opdrachtgever in rekening gebracht en dus niet op de gage ingehouden;",
+          "c. Reis- en onkosten vallen buiten de berekening van die 15%;",
+          "d. Bij een boeking die BDZBookings inkoopt bij een ander bureau geldt het overeengekomen inkooptarief;",
+          "e. De act deelt zijn tarieven niet met opdrachtgevers en maakt zelf geen prijsafspraken;"
         ]
       },
       {
         "label": "Uitbetaling:",
         "regels": [
-          "a. BDZBookings factureert de Opdrachtgever en int het volledige bedrag;",
-          "b. Uitbetaling vindt plaats in de eerste week van de maand ná het optreden, op rekening {{na_het_optreden_op_rekening}} t.n.v. {{op_rekening_t_n_v}};",
+          "a. BDZBookings factureert de opdrachtgever en int het volledige bedrag;",
+          "b. Uitbetaling vindt plaats in de eerste week van de maand n\u00e1 het optreden, op rekening {{na_het_optreden_op_rekening}} t.n.v. {{op_rekening_t_n_v}};",
           "c. Voor de uitbetaling stuurt de act een factuur aan info@bdzbookings.nl, uiterlijk in de laatste week van de maand van het optreden. Heeft de act geen eigen facturatie, dan maakt BDZBookings de factuur namens de act op (self-billing) en stuurt die ter controle mee;",
-          "d. Ontvangt BDZBookings het geld van de Opdrachtgever niet op tijd, dan meldt BDZBookings dat direct en spant BDZBookings zich in om te innen. De uitbetaling schuift dan op tot na ontvangst;"
+          "d. Ontvangt BDZBookings het geld van de opdrachtgever niet op tijd, dan meldt BDZBookings dat direct en spant BDZBookings zich in om te innen. De uitbetaling schuift dan op tot na ontvangst;"
         ]
       },
       {
@@ -2072,43 +1495,35 @@ export const SJABLONEN: Sjabloon[] =
         ]
       },
       {
-        "label": "Niet-exclusief:",
-        "regels": [
-          "a. Deze overeenkomst geldt alleen voor het hierboven genoemde optreden;",
-          "b. De act blijft vrij om zelf boekingen aan te nemen en om bij andere bureaus aangesloten te blijven. BDZBookings werkt niet exclusief;",
-          "c. De act houdt zijn beschikbaarheid in het portaal actueel, zodat BDZBookings weet wanneer er wel of niet geboekt kan worden;"
-        ]
-      },
-      {
         "label": "Rechtstreeks boeken:",
         "regels": [
-          "a. Neemt de Opdrachtgever van dit optreden tijdens of na de avond rechtstreeks contact op voor een nieuwe boeking, dan verwijst de act door naar BDZBookings;",
-          "b. Boekt diezelfde Opdrachtgever de act binnen 12 maanden na dit optreden toch rechtstreeks, dan meldt de act dat en is over die boeking alsnog de gebruikelijke bemiddelingsvergoeding van 15% aan BDZBookings verschuldigd;",
-          "c. Dit geldt niet voor opdrachtgevers die de act al vóór deze boeking als klant had. Twijfel je? Meld het even, dan is het zo geregeld;"
+          "a. Neemt een opdrachtgever die via BDZBookings is gekomen rechtstreeks contact op voor een nieuwe boeking, dan verwijst de act door naar BDZBookings;",
+          "b. Boekt diezelfde opdrachtgever de act binnen 12 maanden na het laatste optreden toch rechtstreeks, dan meldt de act dat en is over die boeking alsnog de gebruikelijke bemiddelingsvergoeding van 15% aan BDZBookings verschuldigd;",
+          "c. Dit geldt niet voor opdrachtgevers die de act al v\u00f3\u00f3r de samenwerking als klant had. Twijfel je? Meld het even, dan is het zo geregeld;"
         ]
       },
       {
         "label": "Afspraken op de avond:",
         "regels": [
           "a. Afspraken over extra speeltijd, extra kosten of een andere invulling lopen altijd via BDZBookings, ook op de avond zelf;",
-          "b. De act maakt geen prijsafspraken met de Opdrachtgever en deelt geen eigen tarieven;",
+          "b. De act maakt geen prijsafspraken met de opdrachtgever;",
           "c. Bryan de Zwart is de hele avond bereikbaar op 085 060 6460;"
         ]
       },
       {
-        "label": "Afzeggen door de Act:",
+        "label": "Afzeggen door de act:",
         "regels": [
-          "a. Kan de act door ziekte, ongeval of een andere onvoorziene reden niet komen, dan belt de act BDZBookings direct — niet appen en niet wachten;",
-          "b. De act denkt mee over een geschikte vervanger van vergelijkbaar niveau. BDZBookings bepaalt in overleg met de Opdrachtgever of die vervanger doorgaat;",
+          "a. Kan de act door ziekte, ongeval of een andere onvoorziene reden niet komen, dan belt de act BDZBookings direct \u2014 niet appen en niet wachten;",
+          "b. De act denkt mee over een geschikte vervanger van vergelijkbaar niveau. BDZBookings bepaalt in overleg met de opdrachtgever of die vervanger doorgaat;",
           "c. Zegt de act af zonder geldige reden of komt de act niet opdagen, dan is de act aansprakelijk voor de schade van BDZBookings, waaronder de kosten van een vervangende act en de misgelopen bemiddelingsvergoeding;",
           "d. Een dubbele boeking of een beter betaald optreden is geen geldige reden;"
         ]
       },
       {
-        "label": "Afzeggen door de Opdrachtgever:",
+        "label": "Afzeggen door de opdrachtgever:",
         "regels": [
-          "a. Zegt de Opdrachtgever de boeking af, dan meldt BDZBookings dit zo snel mogelijk;",
-          "b. BDZBookings brengt de Opdrachtgever een annuleringsvergoeding in rekening (25% tot 100%, afhankelijk van hoe laat er wordt afgezegd);",
+          "a. Zegt de opdrachtgever een boeking af, dan meldt BDZBookings dit zo snel mogelijk;",
+          "b. BDZBookings brengt de opdrachtgever een annuleringsvergoeding in rekening (25% tot 100%, afhankelijk van hoe laat er wordt afgezegd);",
           "c. Van wat BDZBookings daadwerkelijk ontvangt, gaat het deel dat op de gage van de act ziet naar de act. De verhouding is dezelfde als bij een normaal optreden;",
           "d. Al gemaakte, aantoonbare kosten van de act worden volledig vergoed;"
         ]
@@ -2132,9 +1547,10 @@ export const SJABLONEN: Sjabloon[] =
       {
         "label": "Promotie en materialen:",
         "regels": [
-          "a. De act levert BDZBookings foto's, logo, een korte biografie, promotievideo en de technische wensen aan en houdt die actueel;",
+          "a. De act levert BDZBookings foto\u0027s, logo, een korte biografie, promotievideo en de technische wensen aan en houdt die actueel;",
           "b. BDZBookings mag deze materialen, de naam en het portret van de act gebruiken op bdzbookings.nl, in offertes en op de social media van BDZBookings, zolang de samenwerking loopt;",
-          "c. BDZBookings mag foto's en korte video's van het optreden gebruiken voor eigen promotie, tenzij de act daar vooraf bezwaar tegen maakt;"
+          "c. BDZBookings mag foto\u0027s en korte video\u0027s van een optreden gebruiken voor eigen promotie, tenzij de act daar vooraf bezwaar tegen maakt;",
+          "d. Na be\u00ebindiging van de samenwerking haalt BDZBookings het profiel van de act binnen 30 dagen van de website;"
         ]
       },
       {
@@ -2143,19 +1559,184 @@ export const SJABLONEN: Sjabloon[] =
           "a. De act krijgt toegang tot het BDZBookings-portaal via een persoonlijke inloglink;",
           "b. In het portaal staan de bevestigde boekingen, de tijden, de locatie en het overzicht van de uitbetalingen;",
           "c. De act houdt daar zijn eigen niet-beschikbare dagen bij (vakantie, andere boekingen);",
-          "d. BDZBookings neemt altijd eerst persoonlijk contact op om de beschikbaarheid te checken voordat er iets wordt vastgelegd;",
+          "d. BDZBookings verwerkt de gegevens van de act volgens de privacyverklaring op bdzbookings.nl en gebruikt ze alleen voor de bemiddeling;",
           "e. De act gaat zorgvuldig om met de gegevens van opdrachtgevers en deelt die niet met anderen;"
+        ]
+      },
+      {
+        "label": "Duur en opzegging:",
+        "regels": [
+          "a. Deze overeenkomst geldt voor onbepaalde tijd;",
+          "b. Beide partijen kunnen opzeggen per e-mail, met een opzegtermijn van \u00e9\u00e9n maand;",
+          "c. Boekingen die op het moment van opzegging al zijn afgetekend, gaan gewoon door onder deze overeenkomst;",
+          "d. De afspraak over rechtstreeks boeken blijft na be\u00ebindiging nog 12 maanden gelden voor opdrachtgevers die via BDZBookings zijn gekomen;",
+          "e. Bij een ernstige tekortkoming (niet komen opdagen, wanbetaling, gedrag dat de naam van de act of van BDZBookings schaadt) mag de overeenkomst per direct worden be\u00ebindigd;"
         ]
       },
       {
         "label": "Slotafspraken:",
         "regels": [
-          "a. Deze overeenkomst vervangt alle eerdere afspraken over dit optreden;",
+          "a. Deze overeenkomst vervangt alle eerdere afspraken tussen partijen over de bemiddeling;",
           "b. Wijzigingen gelden alleen als ze schriftelijk of per e-mail zijn bevestigd;",
           "c. Is een bepaling niet geldig, dan blijft de rest gewoon gelden;",
           "d. Op deze overeenkomst is Nederlands recht van toepassing;",
-          "e. Geschillen worden voorgelegd aan de bevoegde rechter in het arrondissement waar BDZBookings kantoor houdt;",
-          "f. Is deze overeenkomst niet binnen 7 dagen ondertekend retour, dan mag BDZBookings de boeking aan een andere act aanbieden;"
+          "e. Geschillen worden voorgelegd aan de bevoegde rechter in het arrondissement waar BDZBookings kantoor houdt;"
+        ]
+      },
+      {
+        "label": "Aanvullende afspraken:",
+        "regels": [
+          "{{aanvullende_afspraken}}",
+          "{{aanvullende_afspraken_2}}",
+          "{{aanvullende_afspraken_3}}"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "act-aftekenlijst",
+    "soort": "boeking",
+    "partij": "act",
+    "type": null,
+    "titel": "Aftekenlijst optreden",
+    "ondertitel": "Hoort bij de samenwerkingsovereenkomst met Bryan de Zwart Bookings",
+    "intro": "Dit is de bevestiging van \u00e9\u00e9n optreden. De vaste afspraken staan in de samenwerkingsovereenkomst die de act eerder heeft getekend en blijven onverkort gelden. Loop de lijst na en teken af.",
+    "partijen": [
+      {
+        "label": "Boekingskantoor:",
+        "regels": BOEKINGSKANTOOR
+      },
+      {
+        "label": "Act:",
+        "regels": [
+          "Artiestennaam: {{act_naam}}",
+          "Eigen naam: {{act_eigennaam}}",
+          "Telefoon: {{act_telefoon}} E-mail: {{act_email}}",
+          "Hierna: \u201cde act\u201d;"
+        ]
+      }
+    ],
+    "artikelen": [
+      {
+        "label": "Optreden:",
+        "regels": [
+          "Datum: {{datum}}",
+          "Soort gelegenheid: {{gelegenheid}}",
+          "Opdrachtgever: {{opdrachtgever_naam}}",
+          "Verwacht aantal gasten: {{bezoekers}}  Binnen / buiten: {{binnen_buiten}}"
+        ]
+      },
+      {
+        "label": "Locatie:",
+        "regels": [
+          "Naam locatie: {{locatie_naam}}",
+          "Adres: {{locatie_adres}}",
+          "Postcode en plaats: {{locatie_plaats}}",
+          "Contactpersoon ter plaatse: {{locatie_contact}}",
+          "Reistijd vanaf huisadres van de act: {{reistijd}} minuten;"
+        ]
+      },
+      {
+        "label": "Tijden:",
+        "regels": [
+          "Aanwezig en opbouw vanaf: {{aankomst}}",
+          "Geluidscheck: {{geluidscheck}}",
+          "Aanvang: {{start_tijd}}  Einde: {{eind_tijd}}",
+          "Speeltijd in totaal: {{speeltijd_in_totaal}} uur, in {{aantal_rondes}} blok(ken)",
+          "Afbouw direct na het laatste nummer;"
+        ]
+      },
+      {
+        "label": "Gage:",
+        "regels": [
+          "Gage van de act (excl. btw): {{gage}}",
+          "Reis- en onkostenvergoeding (excl. btw): {{onkosten}}",
+          "Btw ({{btw_pct}}%): {{btw}}",
+          "Totaal te ontvangen (incl. btw): {{totaal}}",
+          "Bij uitloop op verzoek van de opdrachtgever: {{uitloop_tarief}} per extra uur, altijd eerst via BDZBookings;"
+        ]
+      },
+      {
+        "label": "Techniek \u2014 DJ:",
+        "alleen": ["dj"],
+        "regels": [
+          "Geluidsinstallatie: {{geluid_door}}",
+          "Licht: {{licht_door}}",
+          "Stroom op de draaiplek: {{stroom}}",
+          "Extra\u0027s (rookmachine, sfeerverlichting, draadloze microfoon voor speeches): {{extras}}",
+          "Draaigedeelte, laptop, koptelefoon en microfoon brengt de act altijd zelf mee, plus een back-up met de muziek;"
+        ]
+      },
+      {
+        "label": "Techniek \u2014 artiest:",
+        "alleen": ["artiest"],
+        "regels": [
+          "Playback of live begeleiding: {{begeleiding}}",
+          "Geluidsinstallatie: {{geluid_door}}",
+          "Licht: {{licht_door}}",
+          "Vrij speelvlak: {{speelvlak}}",
+          "Stroom: {{stroom}}"
+        ]
+      },
+      {
+        "label": "Techniek \u2014 band:",
+        "alleen": ["band"],
+        "regels": [
+          "Aantal bandleden: {{aantal_bandleden}}  Aantal crew: {{aantal_crew}}",
+          "Podiumafmeting: {{podium_maat}}",
+          "Geluidsinstallatie: {{geluid_door}}",
+          "Licht: {{licht_door}}",
+          "Stroom: {{stroom}}"
+        ]
+      },
+      {
+        "label": "Techniek \u2014 act:",
+        "alleen": ["act"],
+        "regels": [
+          "Korte omschrijving van de act: {{korte_omschrijving}}",
+          "Aantal rondes: {{aantal_rondes}}",
+          "Benodigde ruimte of speelvlak: {{speelvlak}}",
+          "Veiligheidsafstand tot het publiek: {{veiligheidsafstand}}",
+          "Stroom: {{stroom}}"
+        ]
+      },
+      {
+        "label": "Techniek \u2014 presentatie:",
+        "alleen": ["overig"],
+        "regels": [
+          "Wat de act doet: {{korte_omschrijving}}",
+          "Microfoon en geluid: {{geluid_door}}",
+          "Draaiboek aangeleverd door: {{opdrachtgever_naam}}",
+          "Stroom: {{stroom}}"
+        ]
+      },
+      {
+        "label": "Kleedruimte, catering en parkeren:",
+        "alleen": ["artiest", "band", "act"],
+        "regels": [
+          "Kleedruimte: {{kleedruimte}}",
+          "Catering en consumpties: {{catering}}",
+          "Parkeren en laden: {{parkeren}}"
+        ]
+      },
+      {
+        "label": "Muziek en wensen:",
+        "alleen": ["dj", "artiest", "band"],
+        "regels": [
+          "Gewenste stijl van de opdrachtgever: {{muziekstijl}}",
+          "Speciaal moment (openingsdans, jubileumlied): {{speciaal_moment}}",
+          "BDZBookings levert de wensenlijst en de niet-draaien-lijst uiterlijk 5 dagen vooraf aan;",
+          "De act blijft binnen de geluidsnorm van de locatie of de gemeente;"
+        ]
+      },
+      {
+        "label": "Afvinken voor akkoord:",
+        "regels": [
+          "\u2610 De datum, de tijden en de locatie kloppen;",
+          "\u2610 De gage en de reis- en onkostenvergoeding kloppen;",
+          "\u2610 Het is duidelijk wat de act zelf meebrengt en wat de locatie verzorgt;",
+          "\u2610 De samenwerkingsovereenkomst is gelezen en blijft onverkort gelden;",
+          "\u2610 De act is op de afgesproken tijd aanwezig en meldt wijzigingen direct telefonisch bij BDZBookings;"
         ]
       },
       {
@@ -2170,10 +1751,34 @@ export const SJABLONEN: Sjabloon[] =
   }
 ];
 
-export function vindSjabloon(partij: Partij, type: ActType): Sjabloon {
-  const s = SJABLONEN.find((x) => x.partij === partij && x.type === type);
-  if (!s) throw new Error(`Geen sjabloon voor ${partij}/${type}`);
-  return s;
+/**
+ * Zoekt het juiste sjabloon op en laat alleen de blokken over die bij dit
+ * acttype horen. Zonder "soort" gaat het om een gewone boeking, zodat
+ * bestaande aanroepen blijven werken.
+ */
+export function vindSjabloon(
+  partij: Partij,
+  type: ActType,
+  soort: Soort = "boeking",
+): Sjabloon {
+  let s = SJABLONEN.find(
+    (x) => x.soort === soort && x.partij === partij && (x.type === null || x.type === type),
+  );
+
+  // Voor een klant bestaat er (nog) geen sjabloon voor het type "overig".
+  // Val dan terug op het sjabloon voor speciale acts, zodat er niets crasht.
+  if (!s && soort === "boeking" && partij === "klant") {
+    s = SJABLONEN.find((x) => x.soort === "boeking" && x.partij === "klant" && x.type === "act");
+  }
+
+  if (!s) throw new Error(`Geen sjabloon voor ${soort}/${partij}/${type}`);
+
+  const filter = (b: Blok) => !b.alleen || b.alleen.includes(type);
+  return {
+    ...s,
+    partijen: s.partijen.filter(filter),
+    artikelen: s.artikelen.filter(filter),
+  };
 }
 
 /** Vervangt {{veld}} door de waarde, of door een stippellijn als die leeg is. */
