@@ -19,6 +19,15 @@ export const runtime = "nodejs";
 
 const BTW = 0.21;
 
+/** Valt bij op het type van de act terug als "specialiteit" leeg is. */
+const SOORT_ACT: Record<string, string> = {
+  dj: "DJ",
+  artiest: "Artiest",
+  band: "Band",
+  act: "Speciale act",
+  overig: "Overig",
+};
+
 /**
  * Uitloop wordt gerekend tegen het gewone uurtarief.
  * Wil je uitloop duurder maken, zet dit dan op bijvoorbeeld 1.5.
@@ -136,7 +145,7 @@ export async function POST(req: NextRequest) {
 
   const waarden: Record<string, string> = isSamenwerking ? {
     act_naam: act?.name ?? "",
-    act_soort: act?.specialiteit ?? "",
+    act_soort: act?.specialiteit || SOORT_ACT[type] || type,
     act_email: act?.contact_email ?? "",
     act_telefoon: act?.contact_telefoon ?? "",
     // vandaag, tenzij je zelf een andere ingangsdatum invult
@@ -163,7 +172,7 @@ export async function POST(req: NextRequest) {
     klant_telefoon: (b as any).klant_telefoon ?? "",
 
     act_naam: act?.name ?? "",
-    act_soort: act?.specialiteit ?? "",
+    act_soort: act?.specialiteit || SOORT_ACT[type] || type,
     act_email: act?.contact_email ?? "",
     act_telefoon: act?.contact_telefoon ?? "",
 
