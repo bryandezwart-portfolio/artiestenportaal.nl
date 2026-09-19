@@ -178,7 +178,7 @@ export default function TekenFormulier({ token, partij, actType, soort = "boekin
       const res = await fetch("/api/bookings/contracten/tekenen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, code: codeInvoer, naam: naam || "check", plaats: "check", handtekening: "check" }),
+        body: JSON.stringify({ token, code: codeInvoer, naam: "check", plaats: "check", handtekening: "data:image/png;base64,check" }),
       });
       const data = await res.json();
       if (res.status === 401 || res.status === 429 || res.status === 410) throw new Error(data.fout);
