@@ -178,11 +178,10 @@ export default function TekenFormulier({ token, partij, actType, soort = "boekin
       const res = await fetch("/api/bookings/contracten/tekenen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, code: codeInvoer, naam: "check", plaats: "check", handtekening: "data:image/png;base64,check" }),
+        body: JSON.stringify({ token, code: codeInvoer, _alleenCodeCheck: true, naam: "check", plaats: "check", handtekening: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" }),
       });
       const data = await res.json();
       if (res.status === 401 || res.status === 429 || res.status === 410) throw new Error(data.fout);
-      if (res.status === 400 && data.fout?.includes("verplicht")) { setCodeStap("geverifieerd"); return; }
       if (!res.ok) throw new Error(data.fout || "Controleren mislukt");
       setCodeStap("geverifieerd");
     } catch (e: any) {

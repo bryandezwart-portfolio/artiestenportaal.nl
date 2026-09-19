@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     handtekening: string;
     /** Verificatiecode die per mail is gestuurd */
     code?: string;
+    _alleenCodeCheck?: boolean;
   };
 
   if (!body.token || !body.naam?.trim() || !body.plaats?.trim() || !body.handtekening) {
@@ -69,6 +70,9 @@ export async function POST(req: NextRequest) {
       .from("bdzbookings_contracten")
       .update({ code_pogingen: 0 })
       .eq("id", contract.id);
+    if (body._alleenCodeCheck) {
+      return NextResponse.json({ ok: true, codeGeverifieerd: true });
+    }
   }
 
   const partij = contract.partij as Partij;
