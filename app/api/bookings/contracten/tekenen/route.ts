@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
     naam: string;
     plaats: string;
     handtekening: string;
+    /** Verificatiecode die per mail is gestuurd */
+    code?: string;
   };
 
   if (!body.token || !body.naam?.trim() || !body.plaats?.trim() || !body.handtekening) {
@@ -41,6 +43,33 @@ export async function POST(req: NextRequest) {
   if (!contract) return NextResponse.json({ fout: "Onbekende link" }, { status: 404 });
   if (contract.status === "getekend") return NextResponse.json({ fout: "Deze overeenkomst is al getekend" }, { status: 409 });
   if (contract.status === "vervallen") return NextResponse.json({ fout: "Deze versie is vervallen" }, { status: 410 });
+
+  // verificatiecode controleren (alleen als er een is opgeslagen)
+  if (contract.code_hash) {
+    if (!body.code?.trim()) {
+      return NextResponse.json({ fout: "Vul de verificatiecode in die je per mail hebt ontvangen" }, { status: 400 });
+    }
+    const pogingen = Number((contract as any).code_pogingen ?? 0) + 1;
+    await supabaseAdmin
+      .from("bdzbookings_contracten")
+      .update({ code_pogingen: pogingen })
+      .eq("id", contract.id);
+    if (pogingen > 5) {
+      return NextResponse.json({ fout: "Te veel onjuiste pogingen. Vraag een nieuwe code aan." }, { status: 429 });
+    }
+    if (new Date() > new Date((contract as any).code_verloopt_op)) {
+      return NextResponse.json({ fout: "De code is verlopen. Vraag een nieuwe aan." }, { status: 410 });
+    }
+    const crypto2 = await import("crypto");
+    const ingevoerdHash = crypto2.default.createHash("sha256").update(body.code.trim()).digest("hex");
+    if (ingevoerdHash !== contract.code_hash) {
+      return NextResponse.json({ fout: `Onjuiste code (poging ${pogingen} van 5)` }, { status: 401 });
+    }
+    await supabaseAdmin
+      .from("bdzbookings_contracten")
+      .update({ code_pogingen: 0 })
+      .eq("id", contract.id);
+  }
 
   const partij = contract.partij as Partij;
   const type = contract.act_type as ActType;
@@ -175,6 +204,42 @@ export async function POST(req: NextRequest) {
   ]);
 
   const { data: link } = await supabaseAdmin.storage.from("contracten").createSignedUrl(pad, 60 * 60 * 24 * 30);
+
+  // kopie per mail sturen
+  if (process.env.RESEND_API_KEY) {
+    const naarAct = (waarden as any)[partij === "klant" ? "klant_email" : "act_email"] ?? null;
+    const naamAct = (waarden as any)[partij === "klant" ? "klant_contact" : "act_eigennaam"] ||
+                    (waarden as any)[partij === "klant" ? "klant_naam" : "act_naam"] || "";
+    const LOGO_URL = "https://www.artiestenportaal.nl/bdzbookings-logo.png";
+    if (naarAct && link?.signedUrl) {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "Bryan de Zwart Bookings <noreply@bdzbookings.nl>",
+          to: [naarAct],
+          subject: "Getekende overeenkomst — Bryan de Zwart Bookings",
+          html: `<div style="background:#fafafa;padding:32px 16px;font-family:-apple-system,sans-serif;"><div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:28px;"><img src="${LOGO_URL}" width="150" style="display:block;margin-bottom:20px;" /><p style="margin:0;color:#a3a3a3;font-size:13px;">Ondertekend</p><h1 style="margin:6px 0 0;font-size:20px;color:#171717;">Hoi ${naamAct},</h1><p style="margin:12px 0 0;font-size:14px;color:#525252;line-height:1.5;">Bedankt. De overeenkomst is ondertekend. Hieronder kun je de getekende pdf downloaden. Bewaar hem op een veilige plek.</p><a href="${link.signedUrl}" style="display:block;margin-top:24px;background:#171717;color:#fff;text-align:center;padding:13px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:500;">Download de getekende overeenkomst</a><p style="margin:20px 0 0;font-size:12px;color:#a3a3a3;">Vragen? Bel of app me even.<br/>Bryan de Zwart — BDZBookings — 085 060 6460</p></div></div>`,
+        }),
+      }).catch(() => {});
+    }
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Bryan de Zwart Bookings <noreply@bdzbookings.nl>",
+        to: ["info@bdzbookings.nl"],
+        subject: `Getekend: ${(waarden as any).act_naam || (waarden as any).klant_naam || "overeenkomst"}`,
+        html: `<div style="font-family:-apple-system,sans-serif;padding:24px;max-width:480px;"><p style="font-size:16px;color:#171717;font-weight:600;margin:0 0 12px;">${(waarden as any).act_naam || (waarden as any).klant_naam || "Iemand"} heeft getekend.</p><p style="font-size:14px;color:#525252;margin:0 0 8px;">Naam: ${body.naam.trim()}<br/>Tijdstip: ${tijdstip}<br/>IP: ${ip || "onbekend"}</p>${link?.signedUrl ? `<p style="margin:16px 0 0;"><a href="${link.signedUrl}" style="color:#171717;font-weight:500;">Bekijk de getekende pdf</a></p>` : ""}</div>`,
+      }),
+    }).catch(() => {});
+  }
 
   return NextResponse.json({ ok: true, pdf: link?.signedUrl, hash });
 }
