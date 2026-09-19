@@ -7,6 +7,7 @@ type Bestaand = {
   status: string;
   token: string | null;
   ingangsdatum: string | null;
+  aanvullende_afspraken?: string;
   getekend_op: string | null;
 } | null;
 
@@ -48,6 +49,7 @@ export default function SamenwerkingKnop({
     act_adres: "",
     act_plaats: "",
     ingangsdatum: vandaag(),
+    aanvullende_afspraken: "",
   });
 
   const getekend = bestaand?.status === "getekend";
@@ -204,6 +206,17 @@ export default function SamenwerkingKnop({
               <input
                 value={velden.act_plaats}
                 onChange={(e) => setVelden({ ...velden, act_plaats: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] focus:border-neutral-400 focus:outline-none"
+              />
+            </label>
+            <label className="block sm:col-span-2">
+              <span className="text-[12px] text-neutral-600">Aanvullende afspraken <span className="text-neutral-400">(optioneel)</span></span>
+              <p className="text-[11px] text-neutral-400 mb-1">Komen op de overeenkomst te staan onder artikel 17.</p>
+              <textarea
+                value={velden.aanvullende_afspraken}
+                onChange={(e) => setVelden({ ...velden, aanvullende_afspraken: e.target.value })}
+                placeholder="Bijv. exclusief voor regio Nijmegen, afwijkend tarief, ..."
+                rows={3}
                 className="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-[14px] focus:border-neutral-400 focus:outline-none"
               />
             </label>
