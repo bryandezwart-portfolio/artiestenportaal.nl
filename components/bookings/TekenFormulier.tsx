@@ -7,12 +7,15 @@ import {
   VELDEN,
   type ActType,
   type Partij,
+  type Soort,
 } from "@/lib/bookings/contract-sjablonen";
 
 type Props = {
   token: string;
   partij: Partij;
   actType: ActType;
+  /** "boeking" of "samenwerking" — bepaalt welk sjabloon de ondertekenaar ziet. */
+  soort?: Soort;
   waarden: Record<string, string>;
 };
 
@@ -107,8 +110,8 @@ function Krabbelvak({ onChange }: { onChange: (dataUrl: string | null) => void }
   );
 }
 
-export default function TekenFormulier({ token, partij, actType, waarden }: Props) {
-  const sjabloon = useMemo(() => vindSjabloon(partij, actType), [partij, actType]);
+export default function TekenFormulier({ token, partij, actType, soort = "boeking", waarden }: Props) {
+  const sjabloon = useMemo(() => vindSjabloon(partij, actType, soort), [partij, actType, soort]);
 
   const mijnVelden = useMemo(() => {
     const aanwezig = veldenInSjabloon([

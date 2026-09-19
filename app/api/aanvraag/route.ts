@@ -128,7 +128,7 @@ export async function POST(request: Request) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Bryan de Zwart Bookings <bookings@artiestenportaal.nl>",
+            from: "Bryan de Zwart Bookings <noreply@bdzbookings.nl>",
             to: naarAdres,
             subject: onderwerp,
             html,

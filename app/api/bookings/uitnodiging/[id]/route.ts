@@ -143,7 +143,7 @@ export async function POST(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "BDZBookings <bookings@artiestenportaal.nl>",
+        from: "Bryan de Zwart Bookings <noreply@bdzbookings.nl>",
         to: [naar],
         subject: `Boeking ${langeDatum(b.datum)} — ${b.locatie}`,
         html,

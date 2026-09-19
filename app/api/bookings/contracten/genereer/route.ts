@@ -9,6 +9,7 @@ import {
   SJABLOON_VERSIE,
   type Partij,
   type ActType,
+  type Soort,
 } from "@/lib/bookings/contract-sjablonen";
 import { maakContractPdf, type Inhoud } from "@/lib/bookings/contract-pdf";
 import { haalLogo, haalHandtekening } from "@/lib/bookings/merk";
@@ -17,6 +18,15 @@ import { haalLogo, haalHandtekening } from "@/lib/bookings/merk";
 export const runtime = "nodejs";
 
 const BTW = 0.21;
+
+/** Valt bij op het type van de act terug als "specialiteit" leeg is. */
+const SOORT_ACT: Record<string, string> = {
+  dj: "DJ",
+  artiest: "Artiest",
+  band: "Band",
+  act: "Speciale act",
+  overig: "Overig",
+};
 
 /**
  * Uitloop wordt gerekend tegen het gewone uurtarief.
@@ -67,8 +77,19 @@ export async function POST(req: NextRequest) {
   if (!admin) return NextResponse.json({ fout: "Geen toegang" }, { status: 403 });
 
   // 2. wat moet er gemaakt worden
-  const { booking_id, partij, bureau_datum, bureau_plaats, waarden: eigenInvoer } = (await req.json()) as {
-    booking_id: string;
+  const {
+    booking_id,
+    act_id,
+    soort = "boeking",
+    partij: partijInvoer,
+    bureau_datum,
+    bureau_plaats,
+    waarden: eigenInvoer,
+  } = (await req.json()) as {
+    booking_id?: string;
+    /** Alleen bij een samenwerkingsovereenkomst: de act waar hij bij hoort. */
+    act_id?: string;
+    soort?: Soort;
     partij: Partij;
     /** Wat je zelf in het portaal hebt ingevuld. */
     waarden?: Record<string, string>;
@@ -77,29 +98,59 @@ export async function POST(req: NextRequest) {
     /** Optioneel: de plaats onder jouw handtekening. Leeg = Cuijk. */
     bureau_plaats?: string;
   };
-  if (!booking_id || !["klant", "act"].includes(partij)) {
+  // Een samenwerkingsovereenkomst hangt aan de act, niet aan een boeking,
+  // en is altijd met de act zelf.
+  const isSamenwerking = soort === "samenwerking";
+  const partij: Partij = isSamenwerking ? "act" : partijInvoer;
+
+  if (isSamenwerking) {
+    if (!act_id) {
+      return NextResponse.json({ fout: "act_id is verplicht bij een samenwerkingsovereenkomst" }, { status: 400 });
+    }
+  } else if (!booking_id || !["klant", "act"].includes(partij)) {
     return NextResponse.json({ fout: "booking_id en partij (klant of act) zijn verplicht" }, { status: 400 });
   }
 
-  // 3. de boeking ophalen
-  const { data: b, error } = await supabaseAdmin
-    .from("bdzbookings_bookings")
-    .select("*, act:bdzbookings_acts(*)")
-    .eq("id", booking_id)
-    .single();
-  if (error || !b) return NextResponse.json({ fout: "Boeking niet gevonden" }, { status: 404 });
+  // 3. de boeking of de act ophalen
+  let b: any = null;
+  let act: any = null;
 
-  const act = (b as any).act;
+  if (isSamenwerking) {
+    const { data, error } = await supabaseAdmin
+      .from("bdzbookings_acts")
+      .select("*")
+      .eq("id", act_id)
+      .single();
+    if (error || !data) return NextResponse.json({ fout: "Act niet gevonden" }, { status: 404 });
+    act = data;
+  } else {
+    const { data, error } = await supabaseAdmin
+      .from("bdzbookings_bookings")
+      .select("*, act:bdzbookings_acts(*)")
+      .eq("id", booking_id)
+      .single();
+    if (error || !data) return NextResponse.json({ fout: "Boeking niet gevonden" }, { status: 404 });
+    b = data;
+    act = (data as any).act;
+  }
+
   const type = (act?.type ?? "dj") as ActType;
 
   // 4. de velden vullen
   //    Kloppen de kolomnamen niet met jouw tabel? Pas ze hier aan; de rest blijft werken.
-  const gage = Number((b as any).gage ?? (b as any).basistarief ?? 0);
-  const commissie = Number((b as any).commissie ?? 0);
-  const onkosten = Number((b as any).toeslag ?? 0);
+  const gage = Number((b as any)?.gage ?? (b as any)?.basistarief ?? 0);
+  const commissie = Number((b as any)?.commissie ?? 0);
+  const onkosten = Number((b as any)?.toeslag ?? 0);
   const subtotaal = partij === "klant" ? gage + commissie + onkosten : gage + onkosten;
 
-  const waarden: Record<string, string> = {
+  const waarden: Record<string, string> = isSamenwerking ? {
+    act_naam: act?.name ?? "",
+    act_soort: act?.specialiteit || SOORT_ACT[type] || type,
+    act_email: act?.contact_email ?? "",
+    act_telefoon: act?.contact_telefoon ?? "",
+    // vandaag, tenzij je zelf een andere ingangsdatum invult
+    ingangsdatum: new Date().toLocaleDateString("nl-NL"),
+  } : {
     datum: datumNL((b as any).datum),
     gelegenheid: (b as any).gelegenheid ?? "",
     bezoekers: (b as any).bezoekers ? String((b as any).bezoekers) : "",
@@ -121,7 +172,7 @@ export async function POST(req: NextRequest) {
     klant_telefoon: (b as any).klant_telefoon ?? "",
 
     act_naam: act?.name ?? "",
-    act_soort: act?.specialiteit ?? "",
+    act_soort: act?.specialiteit || SOORT_ACT[type] || type,
     act_email: act?.contact_email ?? "",
     act_telefoon: act?.contact_telefoon ?? "",
 
@@ -136,13 +187,13 @@ export async function POST(req: NextRequest) {
   };
 
   // naam van de opdrachtgever: uit de boeking, anders uit wat je zelf invulde
-  if (!waarden.opdrachtgever_naam) {
+  if (!isSamenwerking && !waarden.opdrachtgever_naam) {
     waarden.opdrachtgever_naam =
       (eigenInvoer?.klant_bedrijf || eigenInvoer?.klant_contact || "").trim();
   }
 
   // tarief voor uitloop: uurtarief gedeeld door twee, afgerond op vijf euro
-  const uren = speelUren((b as any).start_tijd, (b as any).eind_tijd);
+  const uren = isSamenwerking ? 0 : speelUren((b as any).start_tijd, (b as any).eind_tijd);
   if (uren > 0) {
     waarden.speeltijd_in_totaal = String(uren).replace(".", ",");
   }
@@ -150,6 +201,8 @@ export async function POST(req: NextRequest) {
     const halfUur = Math.round(((gage / uren) * UITLOOP_FACTOR) / 2 / 5) * 5;
     waarden.speeltijd_wordt_achteraf_gefactureerd_tegen = String(halfUur);
     waarden.blok_wordt_achteraf_gefactureerd_tegen = String(halfUur);
+    // uitloop per heel uur, afgerond op vijf euro, voor de aftekenlijst
+    waarden.uitloop_tarief = "\u20ac " + euro(Math.round(((gage / uren) * UITLOOP_FACTOR) / 5) * 5);
     waarden.wordt_achteraf_gefactureerd_tegen_per = "30";
   }
 
@@ -159,7 +212,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 5. de tekst bevriezen: precies wat er op papier komt
-  const sjabloon = vindSjabloon(partij, type);
+  const sjabloon = vindSjabloon(partij, type, soort);
   const inhoud: Inhoud = {
     titel: sjabloon.titel,
     ondertitel: sjabloon.ondertitel,
@@ -175,7 +228,7 @@ export async function POST(req: NextRequest) {
   const pdf = await maakContractPdf({
     inhoud,
     tegenpartij,
-    referentie: String(booking_id).slice(0, 8),
+    referentie: String(isSamenwerking ? act_id : booking_id).slice(0, 8),
     logo,
     bureau: {
       naam: "Brian Verpoorten",
@@ -187,7 +240,8 @@ export async function POST(req: NextRequest) {
   const hash = crypto.createHash("sha256").update(pdf).digest("hex");
 
   // 7. opslaan in de bucket
-  const pad = `${booking_id}/${partij}-${Date.now()}.pdf`;
+  const map = isSamenwerking ? `act-${act_id}` : String(booking_id);
+  const pad = `${map}/${isSamenwerking ? "samenwerking" : partij}-${Date.now()}.pdf`;
   const { error: uploadFout } = await supabaseAdmin.storage
     .from("contracten")
     .upload(pad, pdf, { contentType: "application/pdf", upsert: true });
@@ -195,17 +249,36 @@ export async function POST(req: NextRequest) {
 
   // 8. een eerdere versie voor dezelfde partij vervalt — ook als die al
   //    getekend was. De oude pdf en het bewijs van ondertekening blijven staan.
-  await supabaseAdmin
+  const vervallen = supabaseAdmin
     .from("bdzbookings_contracten")
     .update({ status: "vervallen" })
-    .eq("booking_id", booking_id)
-    .eq("partij", partij)
     .in("status", ["concept", "verstuurd", "getekend"]);
+
+  if (isSamenwerking) {
+    // een act heeft hooguit een lopende samenwerkingsovereenkomst; zet de
+    // vorige ook op opgezegd, anders houdt de index in Supabase de nieuwe tegen
+    await vervallen
+      .eq("act_id", act_id)
+      .eq("soort", "samenwerking")
+      .is("opgezegd_op", null);
+    await supabaseAdmin
+      .from("bdzbookings_contracten")
+      .update({ opgezegd_op: new Date().toISOString().slice(0, 10) })
+      .eq("act_id", act_id)
+      .eq("soort", "samenwerking")
+      .eq("status", "vervallen")
+      .is("opgezegd_op", null);
+  } else {
+    await vervallen.eq("booking_id", booking_id).eq("partij", partij);
+  }
 
   const { data: contract, error: insertFout } = await supabaseAdmin
     .from("bdzbookings_contracten")
     .insert({
-      booking_id,
+      soort,
+      booking_id: isSamenwerking ? null : booking_id,
+      act_id: isSamenwerking ? act_id : null,
+      ingangsdatum: isSamenwerking ? new Date().toISOString().slice(0, 10) : null,
       partij,
       act_type: type,
       sjabloon_id: sjabloon.id,

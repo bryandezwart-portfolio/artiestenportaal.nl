@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 const supabaseAdmin = createAdminClient();
 import TekenFormulier from "@/components/bookings/TekenFormulier";
-import type { ActType, Partij } from "@/lib/bookings/contract-sjablonen";
+import type { ActType, Partij, Soort } from "@/lib/bookings/contract-sjablonen";
 
 // Deze pagina staat bewust buiten app/bookings, zodat klanten en acts
 // er zonder inloggen bij kunnen. Hetzelfde patroon als app/bevestig/[id].
@@ -24,7 +24,7 @@ function Kader({ titel, tekst }: { titel: string; tekst: string }) {
 export default async function TekenPagina({ params }: { params: { token: string } }) {
   const { data: contract } = await supabaseAdmin
     .from("bdzbookings_contracten")
-    .select("id, partij, act_type, waarden, status, pdf_pad, getekend_op")
+    .select("id, partij, act_type, soort, waarden, status, pdf_pad, getekend_op")
     .eq("token", params.token)
     .maybeSingle();
 
@@ -76,6 +76,7 @@ export default async function TekenPagina({ params }: { params: { token: string 
       token={params.token}
       partij={contract.partij as Partij}
       actType={contract.act_type as ActType}
+      soort={((contract as any).soort ?? "boeking") as Soort}
       waarden={(contract.waarden ?? {}) as Record<string, string>}
     />
   );

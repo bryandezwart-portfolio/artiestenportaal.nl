@@ -8,6 +8,7 @@ import {
   VELDEN,
   type ActType,
   type Partij,
+  type Soort,
 } from "@/lib/bookings/contract-sjablonen";
 import { maakContractPdf, type Inhoud } from "@/lib/bookings/contract-pdf";
 import { haalLogo, haalHandtekening } from "@/lib/bookings/merk";
@@ -43,6 +44,10 @@ export async function POST(req: NextRequest) {
 
   const partij = contract.partij as Partij;
   const type = contract.act_type as ActType;
+  // oude rijen hebben nog geen soort; die zijn altijd een boeking
+  const soort = ((contract as any).soort ?? "boeking") as Soort;
+  // een samenwerkingsovereenkomst hangt aan de act, niet aan een boeking
+  const referentie = String((contract as any).booking_id ?? (contract as any).act_id ?? "").slice(0, 8);
 
   // 2. alleen de velden die deze partij mág invullen overnemen
   const toegestaan = Object.entries(VELDEN)
@@ -63,7 +68,7 @@ export async function POST(req: NextRequest) {
   };
 
   // 3. de definitieve tekst samenstellen en bevriezen
-  const sjabloon = vindSjabloon(partij, type);
+  const sjabloon = vindSjabloon(partij, type, soort);
   const inhoud: Inhoud = {
     titel: sjabloon.titel,
     ondertitel: sjabloon.ondertitel,
@@ -83,7 +88,7 @@ export async function POST(req: NextRequest) {
   const voorlopig = await maakContractPdf({
     inhoud,
     tegenpartij,
-    referentie: String(contract.booking_id).slice(0, 8),
+    referentie,
     bureau: {
       naam: "Brian Verpoorten",
       plaats: "Cuijk",
@@ -111,7 +116,7 @@ export async function POST(req: NextRequest) {
   const pdf = await maakContractPdf({
     inhoud,
     tegenpartij,
-    referentie: String(contract.booking_id).slice(0, 8),
+    referentie,
     bureau: {
       naam: "Brian Verpoorten",
       plaats: "Cuijk",
@@ -129,7 +134,8 @@ export async function POST(req: NextRequest) {
   });
 
   // 6. opslaan
-  const pad = `${contract.booking_id}/${partij}-getekend-${Date.now()}.pdf`;
+  const map = (contract as any).booking_id ?? `act-${(contract as any).act_id}`;
+  const pad = `${map}/${soort === "samenwerking" ? "samenwerking" : partij}-getekend-${Date.now()}.pdf`;
   const { error: uploadFout } = await supabaseAdmin.storage
     .from("contracten")
     .upload(pad, pdf, { contentType: "application/pdf", upsert: true });

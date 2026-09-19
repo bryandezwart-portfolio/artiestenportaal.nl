@@ -31,11 +31,23 @@ export default async function ActPage({ params }: { params: { slug: string } }) 
     .eq("act_id", act.id)
     .order("van");
 
+  // de lopende samenwerkingsovereenkomst van deze act, als die er is
+  const { data: samenwerking } = await supabase
+    .from("bdzbookings_contracten")
+    .select("id, status, token, ingangsdatum, getekend_op")
+    .eq("act_id", act.id)
+    .eq("soort", "samenwerking")
+    .neq("status", "vervallen")
+    .order("aangemaakt_op", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return (
     <ActDetail
       act={act}
       bookingen={bookingen ?? []}
       onbeschikbaarheid={onbeschikbaarheid ?? []}
+      samenwerking={samenwerking ?? null}
     />
   );
 }
