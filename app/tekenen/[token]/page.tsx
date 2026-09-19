@@ -24,7 +24,7 @@ function Kader({ titel, tekst }: { titel: string; tekst: string }) {
 export default async function TekenPagina({ params }: { params: { token: string } }) {
   const { data: contract } = await supabaseAdmin
     .from("bdzbookings_contracten")
-    .select("id, partij, act_type, soort, waarden, status, pdf_pad, getekend_op")
+    .select("id, partij, act_type, soort, waarden, status, pdf_pad, getekend_op, code_hash")
     .eq("token", params.token)
     .maybeSingle();
 
@@ -77,6 +77,7 @@ export default async function TekenPagina({ params }: { params: { token: string 
       partij={contract.partij as Partij}
       actType={contract.act_type as ActType}
       soort={((contract as any).soort ?? "boeking") as Soort}
+      heeftCode={!!(contract as any).code_hash}
       waarden={(contract.waarden ?? {}) as Record<string, string>}
     />
   );
