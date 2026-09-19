@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 const supabaseAdmin = createAdminClient();
@@ -129,6 +130,15 @@ export async function POST(req: NextRequest) {
       .update({ status: "verstuurd", verstuurd_op: new Date().toISOString() })
       .eq("id", contract.id);
   }
+
+  // verificatiecode aanmaken zodat de tekenpagina hem kan vragen
+  const code = String(Math.floor(100_000 + crypto.randomInt(900_000)));
+  const codeHash = crypto.createHash("sha256").update(code).digest("hex");
+  const verloopt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  await supabaseAdmin
+    .from("bdzbookings_contracten")
+    .update({ code_hash: codeHash, code_verloopt_op: verloopt, code_pogingen: 0 })
+    .eq("id", contract.id);
 
   return NextResponse.json({ verstuurd: true, naar });
 }
