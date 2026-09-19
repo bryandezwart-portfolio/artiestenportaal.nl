@@ -673,7 +673,13 @@ export default function ActDetail({
           </a>
         </div>
 
-        <SamenwerkingKnop actId={act.id} actNaam={act.name} bestaand={samenwerking} />
+        <SamenwerkingKnop
+          actId={act.id}
+          actNaam={act.name}
+          actEmail={act.contact_email}
+          actTelefoon={act.contact_telefoon}
+          bestaand={samenwerking}
+        />
 
         <ActJaaroverzicht bookingen={bookingen} />
 
